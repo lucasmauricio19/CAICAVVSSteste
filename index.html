@@ -2426,7 +2426,15 @@ function lembreteAtivo(){
 }
 const getStatusTempoOriginalCaicavv = typeof getStatusTempo === "function" ? getStatusTempo : null;
 getStatusTempo = function(item){ if(!lembreteAtivo()) return ""; return getStatusTempoOriginalCaicavv ? getStatusTempoOriginalCaicavv(item) : ""; };
-function setTelaAtiva(nome){telaAtualCaicavv=nome;document.querySelectorAll(".app-shell .nav").forEach(nav=>nav.classList.toggle("active",nav.dataset.tela===nome));}
+function setTelaAtiva(nome){
+  telaAtualCaicavv = nome;
+  document.body.classList.toggle("tela-agendamentos", nome === "agendamentos");
+  document.body.classList.toggle("tela-pacientes", nome === "pacientes");
+  document.body.classList.toggle("tela-tecnicos", nome === "tecnicos");
+  document.body.classList.toggle("tela-entradas", nome === "entradas");
+  document.body.classList.toggle("tela-configuracoes", nome === "configuracoes");
+  document.querySelectorAll(".app-shell .nav").forEach(nav=>nav.classList.toggle("active",nav.dataset.tela===nome));
+}
 function mostrarBlocosAgendamento(mostrar){["boasVindas","menu","relatorio","filtrosV6","formAtendimento","abasPassadasContainer"].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle("hidden",!mostrar);});}
 function abrirTelaAgendamentos(){setTelaAtiva("agendamentos");mostrarBlocosAgendamento(true);aplicarPermissoesNaTela();if(renderOriginalCaicavv)renderOriginalCaicavv();if(typeof renderizarAbasPassadas === "function") renderizarAbasPassadas();}
 function abrirTelaPacientes(){setTelaAtiva("pacientes");mostrarBlocosAgendamento(false);const totalPastas=Object.keys(cadastros).length;const totalNomes=Object.values(cadastros).reduce((s,nomes)=>s+nomes.length,0);let cards="";Object.entries(cadastros).forEach(([pasta,nomes])=>{nomes.forEach(nome=>{cards+=`<div class="paciente-card"><strong>${escapeHTML(nome)}</strong><span>📁 Pasta ${escapeHTML(pasta)}</span></div>`;});});lista.innerHTML=`<div class="pagina-titulo">Pastas</div><div class="pagina-sub">Busca rápida por nome ou nº da pasta.</div><div class="search-card" style="margin-bottom:14px"><div class="search-box"><span>🔍</span><input id="buscaPacientes" placeholder="Buscar por nome ou nº" oninput="filtrarPacientes()"></div></div><div class="pagina-sub">${totalNomes} nomes cadastrados em ${totalPastas} pastas.</div><div id="listaPacientes" class="pacientes-grid">${cards}</div>`;}
@@ -4606,5 +4614,51 @@ ${conteudo.innerHTML}
   }
 
   setTimeout(iniciarMonitorAguardando, 1200);
+})();
+</script>
+
+<style id="caicavv-visibilidade-agendamentos-style">
+/* ===== Correção: abas dos técnicos + resumo somente em Agendamentos ===== */
+body.modo-app:not(.tela-agendamentos) #menu,
+body.modo-app:not(.tela-agendamentos) #relatorio{
+  display:none!important;
+}
+</style>
+<script id="caicavv-visibilidade-agendamentos-script">
+(function(){
+  function aplicarVisibilidadeAgendamentos(){
+    const tela = (typeof telaAtualCaicavv !== "undefined") ? telaAtualCaicavv : "agendamentos";
+    document.body.classList.toggle("tela-agendamentos", tela === "agendamentos");
+    ["menu", "relatorio"].forEach(function(id){
+      const el = document.getElementById(id);
+      if(el) el.classList.toggle("hidden", tela !== "agendamentos");
+    });
+  }
+
+  const setTelaOriginal = window.setTelaAtiva;
+  if(typeof setTelaOriginal === "function" && !window.__caicavvVisibilidadeAgendamentosWrapped){
+    window.__caicavvVisibilidadeAgendamentosWrapped = true;
+    window.setTelaAtiva = function(nome){
+      const retorno = setTelaOriginal.apply(this, arguments);
+      aplicarVisibilidadeAgendamentos();
+      return retorno;
+    };
+  }
+
+  const renderOriginalVisibilidade = window.render;
+  if(typeof renderOriginalVisibilidade === "function" && !window.__caicavvRenderVisibilidadeWrapped){
+    window.__caicavvRenderVisibilidadeWrapped = true;
+    window.render = function(){
+      const retorno = renderOriginalVisibilidade.apply(this, arguments);
+      aplicarVisibilidadeAgendamentos();
+      return retorno;
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    aplicarVisibilidadeAgendamentos();
+    setTimeout(aplicarVisibilidadeAgendamentos, 300);
+    setTimeout(aplicarVisibilidadeAgendamentos, 1000);
+  });
 })();
 </script>
