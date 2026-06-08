@@ -911,7 +911,7 @@ body.modo-app{
 
 
 
-    <div class="nav" data-tela="entradas" onclick="abrirTelaEntradas()">
+    <div id="navEntradas" class="nav" data-tela="entradas" onclick="abrirTelaEntradas()">
       <div class="nav-icon">📥</div>
       <span>Entradas</span>
     </div>
@@ -1175,6 +1175,12 @@ async function alterarSenhaConfiguracoes(){
 
 function podeAcessarRelatorios(){
   return !!tecnicoLogado && (tecnicoLogado.role === "recepcao" || tecnicoLogado.role === "coordenacao");
+}
+function podeAcessarEntradas(){
+  return !!tecnicoLogado && (tecnicoLogado.role === "adm" || tecnicoLogado.role === "coordenacao");
+}
+function podeCriarAbaAgendamentosPassados(){
+  return !!tecnicoLogado && (tecnicoLogado.role === "adm" || tecnicoLogado.role === "recepcao");
 }
 function ehRecepcao(){
   return !!tecnicoLogado && tecnicoLogado.role === "recepcao";
@@ -1510,6 +1516,18 @@ function aplicarPermissoesNaTela(){
   const menuFundo = document.getElementById("menuLateralFundo");
   if(menuLateral) menuLateral.classList.toggle("hidden", !podeRelatorio);
   if(menuFundo) menuFundo.classList.toggle("hidden", !podeRelatorio);
+
+  const navEntradas = document.getElementById("navEntradas") || document.querySelector('.app-shell .nav[data-tela="entradas"]');
+  const podeVerEntradas = typeof podeAcessarEntradas === "function" ? podeAcessarEntradas() : false;
+  if(navEntradas) navEntradas.classList.toggle("hidden", !podeVerEntradas);
+
+  const btnAbaPassada = document.getElementById("btnCriarAbaPassada");
+  const podeCriarAbaPassada = typeof podeCriarAbaAgendamentosPassados === "function" ? podeCriarAbaAgendamentosPassados() : false;
+  if(btnAbaPassada) btnAbaPassada.classList.toggle("hidden", !podeCriarAbaPassada || telaAtualCaicavv !== "agendamentos");
+
+  if(telaAtualCaicavv === "entradas" && !podeVerEntradas){
+    abrirTelaAgendamentos();
+  }
 }
 
 async function add(){
@@ -2456,7 +2474,7 @@ function setTelaAtiva(nome){
   document.body.classList.toggle("tela-configuracoes", nome === "configuracoes");
   document.querySelectorAll(".app-shell .nav").forEach(nav=>nav.classList.toggle("active",nav.dataset.tela===nome));
 }
-function mostrarBlocosAgendamento(mostrar){["boasVindas","menu","relatorio","filtrosV6","formAtendimento","abasPassadasContainer"].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle("hidden",!mostrar);});}
+function mostrarBlocosAgendamento(mostrar){["boasVindas","menu","relatorio","filtrosV6","formAtendimento","abasPassadasContainer","btnCriarAbaPassada"].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle("hidden",!mostrar);});}
 function abrirTelaAgendamentos(){setTelaAtiva("agendamentos");mostrarBlocosAgendamento(true);aplicarPermissoesNaTela();if(renderOriginalCaicavv)renderOriginalCaicavv();if(typeof renderizarAbasPassadas === "function") renderizarAbasPassadas();}
 function abrirTelaPacientes(){setTelaAtiva("pacientes");mostrarBlocosAgendamento(false);const totalPastas=Object.keys(cadastros).length;const totalNomes=Object.values(cadastros).reduce((s,nomes)=>s+nomes.length,0);let cards="";Object.entries(cadastros).forEach(([pasta,nomes])=>{nomes.forEach(nome=>{cards+=`<div class="paciente-card"><strong>${escapeHTML(nome)}</strong><span>📁 Pasta ${escapeHTML(pasta)}</span></div>`;});});lista.innerHTML=`<div class="pagina-titulo">Pastas</div><div class="pagina-sub">Busca rápida por nome ou nº da pasta.</div><div class="search-card" style="margin-bottom:14px"><div class="search-box"><span>🔍</span><input id="buscaPacientes" placeholder="Buscar por nome ou nº" oninput="filtrarPacientes()"></div></div><div class="pagina-sub">${totalNomes} nomes cadastrados em ${totalPastas} pastas.</div><div id="listaPacientes" class="pacientes-grid">${cards}</div>`;}
 function filtrarPacientes(){const termo=normalizarBusca(document.getElementById("buscaPacientes")?.value||"");document.querySelectorAll(".paciente-card").forEach(card=>{card.style.display=normalizarBusca(card.innerText).includes(termo)?"block":"none";});}
@@ -3275,6 +3293,10 @@ function setTelaAtivaEntradasCAICAVV(){
 }
 
 function abrirTelaEntradas(){
+  if(typeof podeAcessarEntradas === "function" && !podeAcessarEntradas()){
+    if(typeof mostrarErro === "function") mostrarErro("A aba Entradas é liberada apenas para ADM e Coordenação.");
+    return;
+  }
   setTelaAtivaEntradasCAICAVV();
   if(typeof mostrarBlocosAgendamento === "function") mostrarBlocosAgendamento(false);
   const destino = document.getElementById("lista") || document.querySelector(".content");
@@ -4053,14 +4075,21 @@ ${conteudo.innerHTML}
 
   function inserirBotao(){
     const btnAdicionar = el("btnAdicionar");
-    if(!btnAdicionar || el("btnCriarAbaPassada")) return;
+    const form = el("formAtendimento");
+    const existente = el("btnCriarAbaPassada");
+    const podeCriar = typeof podeCriarAbaAgendamentosPassados === "function" ? podeCriarAbaAgendamentosPassados() : false;
+    if(existente){
+      existente.classList.toggle("hidden", !podeCriar);
+      return;
+    }
+    if(!btnAdicionar || !form || !podeCriar) return;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.id = "btnCriarAbaPassada";
     btn.className = "btn-aba-passada";
     btn.textContent = "Criar aba de agendamentos passados";
     btn.addEventListener("click", window.abrirModalAbaPassada);
-    btnAdicionar.insertAdjacentElement("afterend", btn);
+    form.insertAdjacentElement("afterend", btn);
   }
 
   function garantirContainer(){
@@ -4136,10 +4165,15 @@ ${conteudo.innerHTML}
     garantirContainer();
     garantirModal();
     garantirCSS();
+    if(typeof aplicarPermissoesNaTela === "function") aplicarPermissoesNaTela();
     renderizarAbasPassadas();
   }
 
   window.abrirModalAbaPassada = function(){
+    if(typeof podeCriarAbaAgendamentosPassados === "function" && !podeCriarAbaAgendamentosPassados()){
+      avisarErro("A criação de abas de agendamentos passados é liberada apenas para ADM e Recepção.");
+      return;
+    }
     garantirModal();
     const modal = el("modalAbaPassada");
     if(!modal) return;
@@ -4164,6 +4198,10 @@ ${conteudo.innerHTML}
   };
 
   window.salvarAbaPassada = async function(){
+    if(typeof podeCriarAbaAgendamentosPassados === "function" && !podeCriarAbaAgendamentosPassados()){
+      avisarErro("A criação de abas de agendamentos passados é liberada apenas para ADM e Recepção.");
+      return;
+    }
     const nome = String(el("abaPassadaNome")?.value || "").trim();
     const tecnico = String(el("abaPassadaTecnico")?.value || "todos").trim() || "todos";
     const dataInicio = String(el("abaPassadaDataInicio")?.value || "").trim();
