@@ -2420,9 +2420,30 @@ function aplicarTemaSalvo(){
   const tema = localStorage.getItem(chavePreferencia("tema")) || "azul";
   document.body.classList.remove("tema-azul","tema-azul-claro","tema-vermelho","tema-rosa","tema-roxo","tema-verde","tema-amarelo","tema-laranja");
   document.body.classList.add("tema-" + tema);
+  aplicarAparenciaVisualSalva();
 }
 function lembreteAtivo(){
   return localStorage.getItem(chavePreferencia("lembrete")) !== "off";
+}
+function modoNoturnoAtivo(){
+  return localStorage.getItem(chavePreferencia("modo_noturno")) === "on";
+}
+function neonAtivo(){
+  return localStorage.getItem(chavePreferencia("neon")) === "on";
+}
+function aplicarAparenciaVisualSalva(){
+  document.body.classList.toggle("aparencia-noturna", modoNoturnoAtivo());
+  document.body.classList.toggle("neon-ativo", neonAtivo());
+}
+function definirModoNoturno(ativo){
+  localStorage.setItem(chavePreferencia("modo_noturno"), ativo ? "on" : "off");
+  aplicarAparenciaVisualSalva();
+  mostrarSucesso(ativo ? "Aparência noturna ativada para este login." : "Aparência noturna desativada para este login.");
+}
+function definirNeon(ativo){
+  localStorage.setItem(chavePreferencia("neon"), ativo ? "on" : "off");
+  aplicarAparenciaVisualSalva();
+  mostrarSucesso(ativo ? "Neons ativados com a cor do tema." : "Neons desativados para este login.");
 }
 const getStatusTempoOriginalCaicavv = typeof getStatusTempo === "function" ? getStatusTempo : null;
 getStatusTempo = function(item){ if(!lembreteAtivo()) return ""; return getStatusTempoOriginalCaicavv ? getStatusTempoOriginalCaicavv(item) : ""; };
@@ -2446,6 +2467,8 @@ function abrirTelaConfiguracoes(){
   mostrarBlocosAgendamento(false);
   const temaAtual = localStorage.getItem(chavePreferencia("tema")) || "azul";
   const lembrete = lembreteAtivo();
+  const modoNoturno = modoNoturnoAtivo();
+  const neonLigado = neonAtivo();
   const nomeTema = nomesTemasCaicavv[temaAtual] || "Azul";
   const adminSenhas = podeGerenciarSenhas();
 
@@ -2467,6 +2490,22 @@ function abrirTelaConfiguracoes(){
           <button class="tema-btn-amarelo" onclick="definirTema('amarelo')">Amarelo</button>
           <button class="tema-btn-laranja" onclick="definirTema('laranja')">Laranja</button>
         </div>
+      </div>
+
+      <div class="config-card switch-row config-aparencia-card">
+        <div>
+          <h3>Aparência noturna</h3>
+          <p class="pagina-sub">Escurece o painel, os cards e menus para deixar a tela mais confortável à noite. Essa configuração fica salva só neste login.</p>
+        </div>
+        <input type="checkbox" id="checkModoNoturno" ${modoNoturno?"checked":""} onchange="definirModoNoturno(this.checked)">
+      </div>
+
+      <div class="config-card switch-row config-aparencia-card">
+        <div>
+          <h3>Ativar neons</h3>
+          <p class="pagina-sub">Liga brilhos e contornos usando automaticamente a cor padrão escolhida acima. Não fica roxo fixo: segue o tema do usuário.</p>
+        </div>
+        <input type="checkbox" id="checkNeon" ${neonLigado?"checked":""} onchange="definirNeon(this.checked)">
       </div>
 
       <div class="config-card switch-row">
@@ -4662,3 +4701,144 @@ body.modo-app:not(.tela-agendamentos) #relatorio{
   });
 })();
 </script>
+
+<style id="caicavv-aparencia-noturna-neon-style">
+/* ===== Configurações: aparência noturna + neons com a cor do usuário ===== */
+body.modo-app.aparencia-noturna{
+  background:
+    radial-gradient(circle at 82% 4%, color-mix(in srgb, var(--tema) 24%, transparent), transparent 32%),
+    radial-gradient(circle at 8% 92%, color-mix(in srgb, var(--tema) 14%, transparent), transparent 30%),
+    linear-gradient(180deg,#071126 0%,#080f24 45%,#050a18 100%)!important;
+  color:#eaf1ff!important;
+}
+body.modo-app.aparencia-noturna .app-shell .sidebar{
+  background:linear-gradient(180deg,#071126,#030816)!important;
+  border-right:1px solid rgba(255,255,255,.08)!important;
+  box-shadow:12px 0 35px rgba(0,0,0,.36)!important;
+}
+body.modo-app.aparencia-noturna .app-shell .topbar{
+  background:
+    radial-gradient(circle at 92% 15%, color-mix(in srgb, var(--tema) 34%, transparent), transparent 28%),
+    linear-gradient(135deg,#071126,var(--tema-escuro) 62%,#060b19)!important;
+  border-bottom:1px solid color-mix(in srgb, var(--tema) 34%, transparent)!important;
+}
+body.modo-app.aparencia-noturna .app-shell .user-panel,
+body.modo-app.aparencia-noturna .app-shell #menu,
+body.modo-app.aparencia-noturna .app-shell .relatorio-card,
+body.modo-app.aparencia-noturna .app-shell .search-card,
+body.modo-app.aparencia-noturna .app-shell .form-card,
+body.modo-app.aparencia-noturna .app-shell .v10-card,
+body.modo-app.aparencia-noturna .app-shell .lista-vazia,
+body.modo-app.aparencia-noturna .paciente-card,
+body.modo-app.aparencia-noturna .config-card,
+body.modo-app.aparencia-noturna .tecnico-relatorio-box,
+body.modo-app.aparencia-noturna .menu-lateral,
+body.modo-app.aparencia-noturna .menu-bloco,
+body.modo-app.aparencia-noturna .modal-box{
+  background:rgba(12,21,45,.94)!important;
+  border-color:rgba(148,163,184,.20)!important;
+  color:#eaf1ff!important;
+  box-shadow:0 16px 40px rgba(0,0,0,.24)!important;
+}
+body.modo-app.aparencia-noturna .pagina-titulo,
+body.modo-app.aparencia-noturna .config-card h3,
+body.modo-app.aparencia-noturna .paciente-card strong,
+body.modo-app.aparencia-noturna .v10-nome,
+body.modo-app.aparencia-noturna .v10-meta-value,
+body.modo-app.aparencia-noturna .relatorio-card .rel-nome,
+body.modo-app.aparencia-noturna .user-panel b,
+body.modo-app.aparencia-noturna .modal-box h3{
+  color:#f8fbff!important;
+}
+body.modo-app.aparencia-noturna .pagina-sub,
+body.modo-app.aparencia-noturna .paciente-card span,
+body.modo-app.aparencia-noturna .v10-sub,
+body.modo-app.aparencia-noturna .v10-meta-label,
+body.modo-app.aparencia-noturna .relatorio-card .rel-responsavel,
+body.modo-app.aparencia-noturna .aviso{
+  color:#aebde0!important;
+}
+body.modo-app.aparencia-noturna .app-shell #menu button,
+body.modo-app.aparencia-noturna .search-box,
+body.modo-app.aparencia-noturna .v10-meta-item,
+body.modo-app.aparencia-noturna .form-card input,
+body.modo-app.aparencia-noturna .form-card select,
+body.modo-app.aparencia-noturna .search-box input,
+body.modo-app.aparencia-noturna .search-row button,
+body.modo-app.aparencia-noturna .config-card input,
+body.modo-app.aparencia-noturna .config-card select,
+body.modo-app.aparencia-noturna .tecnico-relatorio-box input,
+body.modo-app.aparencia-noturna .tecnico-relatorio-box select,
+body.modo-app.aparencia-noturna .modal-box input,
+body.modo-app.aparencia-noturna .modal-box select{
+  background:rgba(5,10,24,.72)!important;
+  border-color:rgba(148,163,184,.22)!important;
+  color:#eaf1ff!important;
+}
+body.modo-app.aparencia-noturna input::placeholder{
+  color:#94a3c7!important;
+}
+body.modo-app.aparencia-noturna .status-chip,
+body.modo-app.aparencia-noturna .relatorio-card .rel-icone,
+body.modo-app.aparencia-noturna .user-panel .avatar{
+  background:color-mix(in srgb, var(--tema) 18%, #081126)!important;
+  color:#ffffff!important;
+  border:1px solid color-mix(in srgb, var(--tema) 45%, transparent)!important;
+}
+body.modo-app.neon-ativo .app-shell .topbar,
+body.modo-app.neon-ativo .app-shell .nav.active,
+body.modo-app.neon-ativo .app-shell #menu button.ativo,
+body.modo-app.neon-ativo .search-row .active-filter,
+body.modo-app.neon-ativo .search-row .ativo,
+body.modo-app.neon-ativo .linha-pasta button,
+body.modo-app.neon-ativo #btnAdicionar,
+body.modo-app.neon-ativo .tecnico-relatorio-box button,
+body.modo-app.neon-ativo .config-card button,
+body.modo-app.neon-ativo .login-button{
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tema) 42%, transparent),
+    0 0 22px color-mix(in srgb, var(--tema) 52%, transparent),
+    0 14px 36px color-mix(in srgb, var(--tema) 22%, transparent)!important;
+}
+body.modo-app.neon-ativo .app-shell .user-panel,
+body.modo-app.neon-ativo .app-shell .relatorio-card,
+body.modo-app.neon-ativo .app-shell .search-card,
+body.modo-app.neon-ativo .app-shell .form-card,
+body.modo-app.neon-ativo .app-shell .v10-card,
+body.modo-app.neon-ativo .config-card,
+body.modo-app.neon-ativo .paciente-card,
+body.modo-app.neon-ativo .tecnico-relatorio-box{
+  border-color:color-mix(in srgb, var(--tema) 42%, transparent)!important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tema) 13%, transparent),
+    0 0 28px color-mix(in srgb, var(--tema) 18%, transparent),
+    0 14px 32px rgba(0,0,0,.12)!important;
+}
+body.modo-app.neon-ativo .app-shell .v10-card{
+  border-left-color:var(--tema)!important;
+}
+body.modo-app.neon-ativo .app-shell .brand h1,
+body.modo-app.neon-ativo .pagina-titulo,
+body.modo-app.neon-ativo .v10-nome{
+  text-shadow:0 0 16px color-mix(in srgb, var(--tema) 45%, transparent)!important;
+}
+body.modo-app.neon-ativo .menu-icon,
+body.modo-app.neon-ativo .app-shell .nav.active{
+  border-color:color-mix(in srgb, var(--tema) 74%, #fff)!important;
+}
+body.modo-app.neon-ativo .config-aparencia-card input[type="checkbox"]{
+  accent-color:var(--tema);
+  filter:drop-shadow(0 0 8px color-mix(in srgb, var(--tema) 55%, transparent));
+}
+@supports not (color: color-mix(in srgb, red, blue)){
+  body.modo-app.neon-ativo .app-shell .user-panel,
+  body.modo-app.neon-ativo .app-shell .relatorio-card,
+  body.modo-app.neon-ativo .app-shell .search-card,
+  body.modo-app.neon-ativo .app-shell .form-card,
+  body.modo-app.neon-ativo .app-shell .v10-card,
+  body.modo-app.neon-ativo .config-card{
+    border-color:var(--tema)!important;
+    box-shadow:0 0 22px rgba(37,99,235,.22)!important;
+  }
+}
+</style>
