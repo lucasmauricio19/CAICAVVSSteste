@@ -4381,15 +4381,15 @@ ${conteudo.innerHTML}
 <!-- ===== TROCA DE ÍCONES POR PNG - CAICAVV ===== -->
 <style id="caicavv-png-icons-style">
   :root{
-    --img-flor-caicavv: url("./assets-caicavv/flor-amarela.png");
-    --img-usuario-caicavv: url("./assets-caicavv/usuario.png");
-    --img-peao-caicavv: url("./assets-caicavv/peao.png");
-    --img-paciente-caicavv: url("./assets-caicavv/paciente-coracao.png");
-    --img-tecnicos-caicavv: url("./assets-caicavv/tecnicos.png");
-    --img-entradas-caicavv: url("./assets-caicavv/bandeja-entrada.png");
-    --img-agenda-caicavv: url("./assets-caicavv/agenda.png");
-    --img-engrenagem-caicavv: url("./assets-caicavv/engrenagem.png");
-    --img-agenda-decorativa-caicavv: url("./assets-caicavv/agenda-decorativa.png");
+    --img-flor-caicavv: url("img/flor-amarela.png");
+    --img-usuario-caicavv: url("img/usuario.png");
+    --img-peao-caicavv: url("img/peao.png");
+    --img-paciente-caicavv: url("img/paciente-coracao.png");
+    --img-tecnicos-caicavv: url("img/tecnicos.png");
+    --img-entradas-caicavv: url("img/bandeja-entrada.png");
+    --img-agenda-caicavv: url("img/agenda.png");
+    --img-engrenagem-caicavv: url("img/engrenagem.png");
+    --img-agenda-decorativa-caicavv: url("img/agenda-decorativa.png");
   }
 
   .caicavv-png-icon{
@@ -4514,11 +4514,19 @@ ${conteudo.innerHTML}
       opacity:.10!important;
     }
   }
+
+/* Correção dos caminhos: as imagens devem ficar dentro da pasta img/ */
+.caicavv-flor-img,
+.caicavv-agenda-decorativa{
+  max-width:100%!important;
+  max-height:100%!important;
+}
+
 </style>
 
 <script id="caicavv-png-icons-script">
 (function(){
-  const A = "./assets-caicavv/";
+  const A = "img/";
   const img = (src, alt, cls) => `<img src="${A}${src}" alt="${alt}" class="${cls}" draggable="false">`;
 
   function trocarIconesCaicavv(){
