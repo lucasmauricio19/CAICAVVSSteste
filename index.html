@@ -30,6 +30,37 @@
 </head>
 <body>
 
+
+<!-- ===== AJUSTE FINO: PEÃO NO RELATÓRIO + AGENDA DECORATIVA MAIOR ===== -->
+<style id="caicavv-ajuste-peao-agenda">
+  .relatorio-card .rel-icone.caicavv-relatorio-peao{
+    background-image:url("img/peao.png")!important;
+    background-size:70%!important;
+    background-repeat:no-repeat!important;
+    background-position:center!important;
+    font-size:0!important;
+    color:transparent!important;
+  }
+
+  .caicavv-agenda-decorativa{
+    right:190px!important;
+    top:-42px!important;
+    width:155px!important;
+    height:155px!important;
+    opacity:.24!important;
+  }
+
+  @media(max-width:760px){
+    .caicavv-agenda-decorativa{
+      right:16px!important;
+      top:-20px!important;
+      width:105px!important;
+      height:105px!important;
+      opacity:.16!important;
+    }
+  }
+</style>
+
 </body>
 </html>
 
@@ -3781,6 +3812,37 @@ function baixarArquivoEntradasCAICAVV(conteudo, nomeArquivo, tipo){
   <p>Gerado em ${new Date().toLocaleString("pt-BR")}</p>
 </div>
 ${conteudo.innerHTML}
+
+<!-- ===== AJUSTE FINO: PEÃO NO RELATÓRIO + AGENDA DECORATIVA MAIOR ===== -->
+<style id="caicavv-ajuste-peao-agenda">
+  .relatorio-card .rel-icone.caicavv-relatorio-peao{
+    background-image:url("img/peao.png")!important;
+    background-size:70%!important;
+    background-repeat:no-repeat!important;
+    background-position:center!important;
+    font-size:0!important;
+    color:transparent!important;
+  }
+
+  .caicavv-agenda-decorativa{
+    right:190px!important;
+    top:-42px!important;
+    width:155px!important;
+    height:155px!important;
+    opacity:.24!important;
+  }
+
+  @media(max-width:760px){
+    .caicavv-agenda-decorativa{
+      right:16px!important;
+      top:-20px!important;
+      width:105px!important;
+      height:105px!important;
+      opacity:.16!important;
+    }
+  }
+</style>
+
 </body>
 </html>`);
     janela.document.close();
@@ -4436,10 +4498,18 @@ ${conteudo.innerHTML}
   .big-flower-bg::before{content:""!important;}
 
   .icon-box.caicavv-usuario-login,
-  .user-panel .avatar.caicavv-avatar-usuario,
-  .relatorio-card .rel-icone.caicavv-avatar-usuario{
+  .user-panel .avatar.caicavv-avatar-usuario{
     background-image:var(--img-usuario-caicavv)!important;
     background-size:72%!important;
+    background-repeat:no-repeat!important;
+    background-position:center!important;
+    font-size:0!important;
+    color:transparent!important;
+  }
+
+  .relatorio-card .rel-icone.caicavv-relatorio-peao{
+    background-image:var(--img-peao-caicavv)!important;
+    background-size:70%!important;
     background-repeat:no-repeat!important;
     background-position:center!important;
     font-size:0!important;
@@ -4490,12 +4560,12 @@ ${conteudo.innerHTML}
   }
   .caicavv-agenda-decorativa{
     position:absolute!important;
-    right:205px!important;
-    top:-28px!important;
-    width:118px!important;
-    height:118px!important;
+    right:190px!important;
+    top:-42px!important;
+    width:155px!important;
+    height:155px!important;
     object-fit:contain!important;
-    opacity:.16!important;
+    opacity:.24!important;
     pointer-events:none!important;
     transform:rotate(-6deg)!important;
     z-index:0!important;
@@ -4509,9 +4579,9 @@ ${conteudo.innerHTML}
     .caicavv-agenda-decorativa{
       right:16px!important;
       top:-18px!important;
-      width:82px!important;
-      height:82px!important;
-      opacity:.10!important;
+      width:105px!important;
+      height:105px!important;
+      opacity:.16!important;
     }
   }
 
@@ -4570,7 +4640,8 @@ ${conteudo.innerHTML}
       const t = (el.textContent || "").trim();
       if(t === "▣" || t === "♙" || t === ""){
         el.textContent = "";
-        el.classList.add("caicavv-avatar-usuario");
+        el.classList.remove("caicavv-avatar-usuario");
+        el.classList.add("caicavv-relatorio-peao");
       }
     });
 
@@ -4599,6 +4670,37 @@ ${conteudo.innerHTML}
 })();
 </script>
 <!-- ===== FIM DA TROCA DE ÍCONES POR PNG - CAICAVV ===== -->
+
+
+<!-- ===== AJUSTE FINO: PEÃO NO RELATÓRIO + AGENDA DECORATIVA MAIOR ===== -->
+<style id="caicavv-ajuste-peao-agenda">
+  .relatorio-card .rel-icone.caicavv-relatorio-peao{
+    background-image:url("img/peao.png")!important;
+    background-size:70%!important;
+    background-repeat:no-repeat!important;
+    background-position:center!important;
+    font-size:0!important;
+    color:transparent!important;
+  }
+
+  .caicavv-agenda-decorativa{
+    right:190px!important;
+    top:-42px!important;
+    width:155px!important;
+    height:155px!important;
+    opacity:.24!important;
+  }
+
+  @media(max-width:760px){
+    .caicavv-agenda-decorativa{
+      right:16px!important;
+      top:-20px!important;
+      width:105px!important;
+      height:105px!important;
+      opacity:.16!important;
+    }
+  }
+</style>
 
 </body>
 </html>
