@@ -61,6 +61,123 @@
   }
 </style>
 
+
+
+<!-- ===== AJUSTE FINAL: flor sempre amarela + peão/agenda corrigidos no noturno ===== -->
+<style id="caicavv-ajuste-final-flor-peao-agenda">
+/* A flor é a única que NÃO muda de cor no modo noturno. */
+body.modo-app .caicavv-flor-img,
+body.modo-app.aparencia-noturna .caicavv-flor-img,
+body.modo-app.aparencia-noturna.neon-ativo .caicavv-flor-img{
+  filter:drop-shadow(0 0 8px rgba(250,204,21,.28))!important;
+}
+
+/* Dá uma base segura para ícones com PNG em containers redondos. */
+.icon-box.caicavv-usuario-login,
+.user-panel .avatar.caicavv-avatar-usuario,
+.relatorio-card .rel-icone.caicavv-relatorio-peao{
+  position:relative!important;
+  overflow:hidden!important;
+}
+
+/* Dia/modo normal: mantém os PNGs normais. */
+body.modo-app:not(.aparencia-noturna) .icon-box.caicavv-usuario-login,
+body.modo-app:not(.aparencia-noturna) .user-panel .avatar.caicavv-avatar-usuario,
+body.modo-app:not(.aparencia-noturna) .relatorio-card .rel-icone.caicavv-relatorio-peao{
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+}
+
+/* Noturno: não aplicar filter no container inteiro do usuário e do peão,
+   porque isso embranquece o círculo todo e some com o desenho. */
+body.modo-app.aparencia-noturna .icon-box.caicavv-usuario-login,
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario,
+body.modo-app.aparencia-noturna .relatorio-card .rel-icone.caicavv-relatorio-peao,
+body.modo-app.aparencia-noturna.neon-ativo .icon-box.caicavv-usuario-login,
+body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-usuario,
+body.modo-app.aparencia-noturna.neon-ativo .relatorio-card .rel-icone.caicavv-relatorio-peao{
+  filter:none!important;
+}
+
+body.modo-app.aparencia-noturna .icon-box.caicavv-usuario-login,
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario,
+body.modo-app.aparencia-noturna.neon-ativo .icon-box.caicavv-usuario-login,
+body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-usuario{
+  background-image:none!important;
+}
+body.modo-app.aparencia-noturna .icon-box.caicavv-usuario-login::after,
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario::after,
+body.modo-app.aparencia-noturna.neon-ativo .icon-box.caicavv-usuario-login::after,
+body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-usuario::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:var(--img-usuario-caicavv);
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:72%;
+  filter:brightness(0) invert(1);
+}
+
+body.modo-app.aparencia-noturna.neon-ativo .icon-box.caicavv-usuario-login::after,
+body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-usuario::after{
+  filter:brightness(0) invert(1)
+    drop-shadow(0 0 6px rgba(255,255,255,.24))
+    drop-shadow(0 0 14px color-mix(in srgb, var(--tema) 38%, transparent));
+}
+
+body.modo-app.aparencia-noturna .relatorio-card .rel-icone.caicavv-relatorio-peao,
+body.modo-app.aparencia-noturna.neon-ativo .relatorio-card .rel-icone.caicavv-relatorio-peao{
+  background-image:none!important;
+}
+body.modo-app.aparencia-noturna .relatorio-card .rel-icone.caicavv-relatorio-peao::after,
+body.modo-app.aparencia-noturna.neon-ativo .relatorio-card .rel-icone.caicavv-relatorio-peao::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:var(--img-peao-caicavv);
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:68%;
+  filter:brightness(0) invert(1);
+}
+body.modo-app.aparencia-noturna.neon-ativo .relatorio-card .rel-icone.caicavv-relatorio-peao::after{
+  filter:brightness(0) invert(1)
+    drop-shadow(0 0 6px rgba(255,255,255,.24))
+    drop-shadow(0 0 14px color-mix(in srgb, var(--tema) 38%, transparent));
+}
+
+/* Agenda decorativa corrigida: usa a agenda normal, com tamanho e opacidade mais estáveis. */
+.caicavv-agenda-decorativa{
+  right:120px!important;
+  top:-10px!important;
+  width:112px!important;
+  height:112px!important;
+  object-fit:contain!important;
+  opacity:.16!important;
+  transform:rotate(-4deg)!important;
+}
+@media(max-width:760px){
+  .caicavv-agenda-decorativa{
+    right:10px!important;
+    top:-6px!important;
+    width:78px!important;
+    height:78px!important;
+    opacity:.12!important;
+  }
+}
+body.modo-app.aparencia-noturna .caicavv-agenda-decorativa{
+  filter:brightness(0) invert(1)!important;
+  opacity:.11!important;
+}
+body.modo-app.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
+  filter:brightness(0) invert(1)
+    drop-shadow(0 0 6px rgba(255,255,255,.18))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--tema) 30%, transparent))!important;
+  opacity:.14!important;
+}
+</style>
+
 </body>
 </html>
 
@@ -4648,7 +4765,7 @@ ${conteudo.innerHTML}
     document.querySelectorAll(".search-card").forEach(card=>{
       if(!card.querySelector(".caicavv-agenda-decorativa")){
         const decor = document.createElement("img");
-        decor.src = A + "agenda-decorativa.png";
+        decor.src = A + "agenda.png";
         decor.alt = "";
         decor.className = "caicavv-agenda-decorativa";
         decor.setAttribute("aria-hidden", "true");
