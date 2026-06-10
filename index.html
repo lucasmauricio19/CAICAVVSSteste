@@ -5447,3 +5447,85 @@ body.modo-app.neon-ativo .paciente-card:hover{
   }
 }
 </style>
+
+<!-- ===== CORREÇÃO: flor, usuário e agenda no modo noturno ===== -->
+<style id="caicavv-correcao-flor-usuario-agenda-noturno">
+/*
+  Correção dos 3 ícones que estavam virando "manchas" no modo noturno:
+  - flor: fica clara sem perder totalmente o contorno;
+  - usuário: o filtro não pega mais o círculo inteiro, só o PNG;
+  - agenda: fica bem mais discreta para não estourar atrás da busca.
+*/
+
+/* 1) Flor: deixa clara/branca, mas sem transformar tudo em uma bolha sólida */
+body.modo-app.aparencia-noturna .caicavv-flor-img{
+  filter:grayscale(1) brightness(2.15) contrast(1.08)
+         drop-shadow(0 0 8px rgba(255,255,255,.24))!important;
+  opacity:.96!important;
+}
+
+body.modo-app.aparencia-noturna.neon-ativo .caicavv-flor-img{
+  filter:grayscale(1) brightness(2.15) contrast(1.08)
+         drop-shadow(0 0 7px rgba(255,255,255,.30))
+         drop-shadow(0 0 14px color-mix(in srgb, var(--tema) 35%, transparent))!important;
+}
+
+/* 2) Usuário: remove o filtro do círculo e aplica somente no desenho do PNG */
+.icon-box.caicavv-usuario-login,
+.user-panel .avatar.caicavv-avatar-usuario{
+  position:relative!important;
+  overflow:hidden!important;
+  background-image:none!important;
+}
+
+.icon-box.caicavv-usuario-login::before,
+.user-panel .avatar.caicavv-avatar-usuario::before{
+  content:""!important;
+  position:absolute!important;
+  inset:14%!important;
+  background-image:var(--img-usuario-caicavv)!important;
+  background-size:contain!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  pointer-events:none!important;
+  filter:none!important;
+}
+
+body.modo-app.aparencia-noturna .icon-box.caicavv-usuario-login,
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario{
+  filter:none!important;
+  background:rgba(255,255,255,.08)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14), 0 0 18px rgba(255,255,255,.10)!important;
+}
+
+body.modo-app.aparencia-noturna .icon-box.caicavv-usuario-login::before,
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario::before{
+  filter:brightness(0) invert(1) drop-shadow(0 0 6px rgba(255,255,255,.22))!important;
+}
+
+body.modo-app.aparencia-noturna.neon-ativo .icon-box.caicavv-usuario-login::before,
+body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-usuario::before{
+  filter:brightness(0) invert(1)
+         drop-shadow(0 0 6px rgba(255,255,255,.30))
+         drop-shadow(0 0 12px color-mix(in srgb, var(--tema) 36%, transparent))!important;
+}
+
+/* 3) Agenda decorativa: branca, mas com baixa opacidade para não virar bloco cinza/branco */
+body.modo-app.aparencia-noturna .caicavv-agenda-decorativa{
+  filter:brightness(0) invert(1) drop-shadow(0 0 10px rgba(255,255,255,.12))!important;
+  opacity:.085!important;
+}
+
+body.modo-app.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
+  filter:brightness(0) invert(1)
+         drop-shadow(0 0 12px color-mix(in srgb, var(--tema) 30%, transparent))!important;
+  opacity:.11!important;
+}
+
+/* Garante que os filtros antigos não voltem a afetar esses 3 de forma errada */
+body.modo-app.aparencia-noturna .icon-box.caicavv-usuario-login,
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario{
+  color:transparent!important;
+  font-size:0!important;
+}
+</style>
