@@ -4702,6 +4702,54 @@ ${conteudo.innerHTML}
   }
 </style>
 
+
+
+<!-- ===== AJUSTE: PNGs brancos no modo noturno, sem adicionar novas imagens ===== -->
+<style id="caicavv-pngs-brancos-modo-noturno">
+/*
+  Quando a aparência noturna estiver ativa, os PNGs usados como ícones
+  ficam brancos usando apenas CSS. Não precisa criar versões novas das imagens.
+*/
+body.modo-app.aparencia-noturna .caicavv-flor-img,
+body.modo-app.aparencia-noturna .caicavv-agenda-decorativa,
+body.modo-app.aparencia-noturna .icon-box.caicavv-usuario-login,
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario,
+body.modo-app.aparencia-noturna .relatorio-card .rel-icone.caicavv-relatorio-peao,
+body.modo-app.aparencia-noturna .side-icon.caicavv-peao-login,
+body.modo-app.aparencia-noturna .app-shell .nav-icon.caicavv-nav-img,
+body.modo-app.aparencia-noturna .menu button::before{
+  filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.18))!important;
+}
+
+/* No modo noturno + neon, os ícones continuam brancos, mas ganham um brilho leve da cor escolhida. */
+body.modo-app.aparencia-noturna.neon-ativo .caicavv-flor-img,
+body.modo-app.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa,
+body.modo-app.aparencia-noturna.neon-ativo .icon-box.caicavv-usuario-login,
+body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-usuario,
+body.modo-app.aparencia-noturna.neon-ativo .relatorio-card .rel-icone.caicavv-relatorio-peao,
+body.modo-app.aparencia-noturna.neon-ativo .side-icon.caicavv-peao-login,
+body.modo-app.aparencia-noturna.neon-ativo .app-shell .nav-icon.caicavv-nav-img,
+body.modo-app.aparencia-noturna.neon-ativo .menu button::before{
+  filter:brightness(0) invert(1)
+    drop-shadow(0 0 6px rgba(255,255,255,.24))
+    drop-shadow(0 0 14px color-mix(in srgb, var(--tema) 38%, transparent))!important;
+}
+
+/* Mantém os ícones coloridos normalmente quando a aparência noturna estiver desligada. */
+body.modo-app:not(.aparencia-noturna) .caicavv-flor-img{
+  filter:drop-shadow(0 0 8px rgba(250,204,21,.28))!important;
+}
+body.modo-app:not(.aparencia-noturna) .caicavv-agenda-decorativa,
+body.modo-app:not(.aparencia-noturna) .icon-box.caicavv-usuario-login,
+body.modo-app:not(.aparencia-noturna) .user-panel .avatar.caicavv-avatar-usuario,
+body.modo-app:not(.aparencia-noturna) .relatorio-card .rel-icone.caicavv-relatorio-peao,
+body.modo-app:not(.aparencia-noturna) .side-icon.caicavv-peao-login,
+body.modo-app:not(.aparencia-noturna) .app-shell .nav-icon.caicavv-nav-img,
+body.modo-app:not(.aparencia-noturna) .menu button::before{
+  filter:none!important;
+}
+</style>
+
 </body>
 </html>
 
