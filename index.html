@@ -5646,3 +5646,131 @@ body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario{
   font-size:0!important;
 }
 </style>
+
+
+<!-- ===== CORREÇÃO REAL FINAL: flor amarela + peão e agenda sem bug no modo noturno ===== -->
+<style id="caicavv-correcao-real-final-flor-peao-agenda">
+/* 
+  IMPORTANTE:
+  Este bloco fica no final do arquivo para sobrescrever os estilos anteriores.
+  A flor NÃO entra no modo branco. Ela permanece amarela sempre.
+*/
+
+/* FLOR: sempre amarela, no modo normal, noturno e neon */
+body .caicavv-flor-img,
+body.modo-app .caicavv-flor-img,
+body.modo-app.aparencia-noturna .caicavv-flor-img,
+body.modo-app.aparencia-noturna.neon-ativo .caicavv-flor-img,
+body.aparencia-noturna .caicavv-flor-img,
+body.aparencia-noturna.neon-ativo .caicavv-flor-img{
+  filter:drop-shadow(0 0 8px rgba(250,204,21,.28))!important;
+}
+
+/* Remove a regra antiga que deixava a flor branca */
+body.modo-app.aparencia-noturna .caicavv-flor-img{
+  opacity:1!important;
+}
+
+/* PEÃO DO RELATÓRIO: o filtro não pode cair no círculo inteiro */
+body.modo-app.aparencia-noturna .relatorio-card .rel-icone.caicavv-relatorio-peao,
+body.modo-app.aparencia-noturna.neon-ativo .relatorio-card .rel-icone.caicavv-relatorio-peao{
+  position:relative!important;
+  overflow:hidden!important;
+  background-image:none!important;
+  filter:none!important;
+  background-color:rgba(255,255,255,.10)!important;
+  box-shadow:0 0 14px rgba(255,255,255,.20)!important;
+}
+
+body.modo-app.aparencia-noturna .relatorio-card .rel-icone.caicavv-relatorio-peao::after,
+body.modo-app.aparencia-noturna.neon-ativo .relatorio-card .rel-icone.caicavv-relatorio-peao::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  background-image:var(--img-peao-caicavv)!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:68%!important;
+  filter:brightness(0) invert(1)!important;
+  opacity:.95!important;
+}
+
+body.modo-app.aparencia-noturna.neon-ativo .relatorio-card .rel-icone.caicavv-relatorio-peao::after{
+  filter:brightness(0) invert(1)
+    drop-shadow(0 0 6px rgba(255,255,255,.28))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--tema) 35%, transparent))!important;
+}
+
+/* PEÃO DO MENU/TABS: branco sem estourar */
+body.modo-app.aparencia-noturna .menu button::before,
+body.modo-app.aparencia-noturna.neon-ativo .menu button::before,
+body.aparencia-noturna .menu button::before,
+body.aparencia-noturna.neon-ativo .menu button::before{
+  filter:brightness(0) invert(1)!important;
+  opacity:.92!important;
+}
+
+/* USUÁRIO: mantém o círculo, mas embranquece só o desenho */
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario,
+body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-usuario{
+  position:relative!important;
+  overflow:hidden!important;
+  background-image:none!important;
+  filter:none!important;
+  background-color:rgba(255,255,255,.10)!important;
+}
+
+body.modo-app.aparencia-noturna .user-panel .avatar.caicavv-avatar-usuario::after,
+body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-usuario::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  background-image:var(--img-usuario-caicavv)!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:72%!important;
+  filter:brightness(0) invert(1)!important;
+  opacity:.95!important;
+}
+
+/* AGENDA DECORATIVA: menor, discreta e usando a agenda normal */
+.caicavv-agenda-decorativa{
+  content:url("img/agenda.png")!important;
+  right:138px!important;
+  top:-4px!important;
+  width:96px!important;
+  height:96px!important;
+  object-fit:contain!important;
+  transform:rotate(-5deg)!important;
+  opacity:.10!important;
+  filter:none!important;
+  pointer-events:none!important;
+}
+
+body.modo-app.aparencia-noturna .caicavv-agenda-decorativa,
+body.aparencia-noturna .caicavv-agenda-decorativa{
+  content:url("img/agenda.png")!important;
+  filter:brightness(0) invert(1)!important;
+  opacity:.075!important;
+}
+
+body.modo-app.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa,
+body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
+  content:url("img/agenda.png")!important;
+  filter:brightness(0) invert(1)
+    drop-shadow(0 0 7px rgba(255,255,255,.14))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--tema) 28%, transparent))!important;
+  opacity:.095!important;
+}
+
+@media(max-width:760px){
+  .caicavv-agenda-decorativa{
+    right:12px!important;
+    top:2px!important;
+    width:68px!important;
+    height:68px!important;
+    opacity:.08!important;
+  }
+}
+</style>
+<!-- ===== FIM DA CORREÇÃO REAL FINAL ===== -->
