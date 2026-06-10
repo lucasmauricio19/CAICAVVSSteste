@@ -4765,7 +4765,7 @@ ${conteudo.innerHTML}
     document.querySelectorAll(".search-card").forEach(card=>{
       if(!card.querySelector(".caicavv-agenda-decorativa")){
         const decor = document.createElement("img");
-        decor.src = A + "agenda.png";
+        decor.src = A + "agenda-decorativa.png";
         decor.alt = "";
         decor.className = "caicavv-agenda-decorativa";
         decor.setAttribute("aria-hidden", "true");
@@ -5735,7 +5735,7 @@ body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-us
 
 /* AGENDA DECORATIVA: menor, discreta e usando a agenda normal */
 .caicavv-agenda-decorativa{
-  content:url("img/agenda.png")!important;
+  content:url("img/agenda-decorativa.png")!important;
   right:138px!important;
   top:-4px!important;
   width:96px!important;
@@ -5749,14 +5749,14 @@ body.modo-app.aparencia-noturna.neon-ativo .user-panel .avatar.caicavv-avatar-us
 
 body.modo-app.aparencia-noturna .caicavv-agenda-decorativa,
 body.aparencia-noturna .caicavv-agenda-decorativa{
-  content:url("img/agenda.png")!important;
+  content:url("img/agenda-decorativa.png")!important;
   filter:brightness(0) invert(1)!important;
   opacity:.075!important;
 }
 
 body.modo-app.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa,
 body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
-  content:url("img/agenda.png")!important;
+  content:url("img/agenda-decorativa.png")!important;
   filter:brightness(0) invert(1)
     drop-shadow(0 0 7px rgba(255,255,255,.14))
     drop-shadow(0 0 12px color-mix(in srgb, var(--tema) 28%, transparent))!important;
@@ -5774,3 +5774,91 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
 }
 </style>
 <!-- ===== FIM DA CORREÇÃO REAL FINAL ===== -->
+
+
+<!-- ===== CORREÇÃO DEFINITIVA: agenda ilustrativa na busca ===== -->
+<style id="caicavv-correcao-agenda-ilustrativa-final">
+  /* A agenda decorativa da área de busca deve usar a imagem ilustrativa,
+     sem trocar o ícone normal da aba Agendamentos. */
+  .search-card{
+    position:relative!important;
+    overflow:hidden!important;
+  }
+
+  .caicavv-agenda-decorativa{
+    content:url("img/agenda-decorativa.png")!important;
+    position:absolute!important;
+    right:138px!important;
+    top:-4px!important;
+    width:104px!important;
+    height:104px!important;
+    object-fit:contain!important;
+    transform:rotate(-5deg)!important;
+    opacity:.13!important;
+    filter:none!important;
+    pointer-events:none!important;
+    z-index:0!important;
+  }
+
+  .search-card > *{
+    position:relative!important;
+    z-index:1!important;
+  }
+
+  body.modo-app.aparencia-noturna .caicavv-agenda-decorativa,
+  body.aparencia-noturna .caicavv-agenda-decorativa{
+    content:url("img/agenda-decorativa.png")!important;
+    filter:brightness(0) invert(1)!important;
+    opacity:.09!important;
+  }
+
+  body.modo-app.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa,
+  body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
+    content:url("img/agenda-decorativa.png")!important;
+    filter:brightness(0) invert(1)
+      drop-shadow(0 0 7px rgba(255,255,255,.14))
+      drop-shadow(0 0 12px color-mix(in srgb, var(--tema) 28%, transparent))!important;
+    opacity:.105!important;
+  }
+
+  @media(max-width:760px){
+    .caicavv-agenda-decorativa{
+      right:12px!important;
+      top:2px!important;
+      width:76px!important;
+      height:76px!important;
+      opacity:.09!important;
+    }
+  }
+</style>
+
+<script id="caicavv-correcao-agenda-ilustrativa-script">
+(function(){
+  function corrigirAgendaIlustrativaCaicavv(){
+    document.querySelectorAll(".search-card").forEach(function(card){
+      let decor = card.querySelector(".caicavv-agenda-decorativa");
+      if(!decor){
+        decor = document.createElement("img");
+        decor.className = "caicavv-agenda-decorativa";
+        decor.alt = "";
+        decor.setAttribute("aria-hidden", "true");
+        decor.draggable = false;
+        card.appendChild(decor);
+      }
+      decor.src = "img/agenda-decorativa.png";
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", corrigirAgendaIlustrativaCaicavv);
+  setTimeout(corrigirAgendaIlustrativaCaicavv, 300);
+  setTimeout(corrigirAgendaIlustrativaCaicavv, 1200);
+
+  const obsAgendaIlustrativa = new MutationObserver(function(){
+    clearTimeout(window.__caicavvAgendaIlustrativaTimer);
+    window.__caicavvAgendaIlustrativaTimer = setTimeout(corrigirAgendaIlustrativaCaicavv, 80);
+  });
+
+  obsAgendaIlustrativa.observe(document.documentElement, {childList:true, subtree:true});
+})();
+</script>
+<!-- ===== FIM DA CORREÇÃO DEFINITIVA: agenda ilustrativa na busca ===== -->
