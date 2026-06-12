@@ -6206,7 +6206,7 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
     var destino = document.getElementById("lista") || document.querySelector(".content");
     if(!destino) return;
     destino.innerHTML = '<div class="pagina-titulo">Upload</div>'+
-      '<div class="pagina-sub">Importe planilhas antigas de agendamentos e também arquivos de entradas. A humanidade inventou planilha para sofrer em colunas, então pelo menos agora o sistema lê.</div>'+
+      '<div class="pagina-sub">Importe planilhas antigas de agendamentos e arquivos de entradas em formato .ods, .xlsx ou .xls.</div>'+
       '<div class="upload-grid-caicavv">'+
         '<div class="upload-card-caicavv"><h3>1. Upload de agendamentos passados</h3><p>Envie uma planilha .ods, .xlsx ou .xls, escolha a aba e gere uma prévia antes de salvar.</p>'+
           '<label>Arquivo</label><input id="uploadArquivoPlanilha" type="file" accept=".ods,.xlsx,.xls" onchange="lerArquivoUploadPlanilhaCAICAVV(event)">'+
@@ -6252,7 +6252,7 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
         }
         var nomeRel = document.getElementById("uploadNomeRelatorio");
         if(nomeRel && !nomeRel.value) nomeRel.value = arquivo.name.replace(/\.[^.]+$/, "");
-        if(preview) preview.innerHTML = "Arquivo lido. Agora gere a prévia, porque confiar cegamente em planilha é um esporte radical.";
+        if(preview) preview.innerHTML = "Arquivo lido. Gere a prévia antes de importar.";
         prepararUploadPlanilhaCAICAVV();
       }catch(e){ console.error(e); if(typeof mostrarErro === "function") mostrarErro("Não foi possível ler a planilha de agendamentos."); }
     };
@@ -6544,3 +6544,266 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
 })();
 </script>
 <!-- ===== FIM DOS AJUSTES SOLICITADOS ===== -->
+
+
+<!-- ===== AJUSTE FINAL: ÍCONE DE UPLOAD + MENSAGENS ESSENCIAIS ===== -->
+<style id="caicavv-upload-icone-mensagens-essenciais-style">
+  :root{
+    --img-upload-caicavv:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAQAAABecRxxAAAJ/UlEQVR4Ae3d/c9ehV3H8fd181QetsEQC9Z1CFFnFxJigVlEh5HY2DJAnBgxKrDIjKhbmMJGKZMHFQRZRGAMWaZCwY7WOREzQ0wYbokMCkh0xigskzhxCdsSs7DBtpr4kyGsd5/uq9d1zuvFv3Cdd77n5EPvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADmGQAAAAAAAAAAAAAAAAAAAAAAsH+jAxzc2d3ctl7un7u9n+11jRKTxoflPdDJ/X/PtL5/DQFg8Fb1YMf2Sl/u3B4OAWDQTuuBDu/VvNwvdV8IAIO1oic7qm/n6/1Ij4UADBIH9MnWtCP/0Q/2QozGQozHja1px1Z2bwsNDi4AzmtzO+O6NjYouAB4Ux9u52zozAYEFwCH9plWtbO+0uqebSAQADZ1frviqU7txQYAAeCSbm1X/UkXhm8AzL1Turldd0EXhwAw547s/g5sd9zSySEAzLGFNrWy3XNQWzoyBIC5dVVrW5xZkAAwQGvb2J75ia4OAWAOrWxTC+2AWRCTGKYD+/tOaYfMgpjEMN3aJS3CLIhJDNH5bWpRZkEsxPCs6s4WZxaEAAzQYW3t0HaCWRCTGJrNndee868FuQCYQ+9a/PE3C0IAhmlNN7Y4syAEYICO6v4OaCltaH0IADNoofta0dKadE/HhY+AzJzr2tAuMQtiIYZhXVc0HSd2e7gAmCHH9kRHND3v7M5wATATDmrL7jz+ZkFMYv59qItbnFkQLoAB+sXFH3+zIARgmE7ogy3OLAgBGKDXtrVD2k1mQUxinm3t3PalL3dSz7YPIAC8p5vaA2ZBLMS8Oq3r2yNmQUxiPi3vyY5pcWZBuAAGZ7/+vGOaFbd0UlODC4Dru7zFmQXhAhigs7qsvcAsiEnMm+Pa1uHNnmu7KlwALKllbe3wZtGVrQ8XAEvqw13U4syCcAEM0EVd1Ow6oq0tCwFgSZzYbc22E/tgeAVgCRze4x3f4syCcAEMzqQ/3duPv1kQk5gPl3d9izMLwgUwQKf3O+11ZkFMYvYd05Mtb3FmQbgABmf/Nre8JWAWxCRm3U29p8WZBSEAA3RuW5tXT7Wmr7Wb8ArA9/aRloxZEJOYXQf3aCe0OLMgXAADdMfSPv5mQUxiVl3chxqCz7e6F9oFuABY3S0NwxvNgnaNC4AjeqJjW5xZEC6AwZl09zQef7MgJjF7NnRdQ/PlVve5FoELgB/vmobniP6iZSEA7NCK7muhqfBHxJjELDmghzu1KTELYiFmyY3TfPzNgpjE7DivzU2RWRALMSu+v7savje2ya/ulVwAHNqjvbmpMgtCi2fFndN//M2CmMQs+NVua3FmQbgABuiUPtA+4I+IMWlf48ieaGXj85EuauRcACy0qZWN0YX9ciMnAGxsbWP1R53UiAkAa7uq8TqoLR3ZSAkAbxjrKMYsyEdADuyR3tIomQW5ALjZ428WNNYLgJ/r3kbJLMgFwKr+uFEyC3IBcFiP9aZGySxIANjceb0SF7uKvAKMwW+M9fE3CxIA1nRTmAUJwCgd1Uc7IMyCBGCEFrq3745vb22/3UAJAFd3RpgFCcAorWtDi2HS3X1PTMkkpuPYtvX62BlPdmpfazAEgIP6VCeFWZAAjNIdvTPMgnwDGKVfGOvjbxYkAJzQHWEWJACj9Nq2dkiYBfkGMEpb+unwrwW5AEbp0j16/LmydSEAc+q0bog9MekesyCvAPNpeU/0XWEWJAAjtF8P9WNhFiQAo/R7vTfMgnwDGKWzujzMglwAo3Rc2zo89qbPt7oXwgUw85a1ZayPv1mQC4C7ekcshWt6f7gAZtqFS/b4s7F1IQAz7MRuD7MgARil17WlZeGPiPkGMEKTPtbZYRYkAKN0WTeEWZBXgFF6a78bZkEugFE6uH9rRUzLM63qpRCAGXFpfxDT9OvdGl4BZsKhXR7TdWWHhgtgJvxmN8a0vbcbwgUwA94S0/dDIQDuqNHaHgIwEz4e0/eJEICZcHebY9rRvSscrzPj5zunEzu+SSyl7T3bP/ZX/VnbQwBmzGGt6pD23Nu7pCG6vM+0J17ss/1PAycAvLsPNEQ/2SfCNwBAAAABAAQAEABAAAABAAQAEABAAAABAAQAEABAAAABAAQAEABAAAABAAQAXp0AAAIACAAgAIAAAAIACAAgAIAAAAIACAAgAIAAAAIACAAgAIAAAAIACAAgAIAAAAIACAAgAIAAAAIACAAgAIAAAAIACAAgAIAAAAIAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgADAV0MAGK0vhAAgAAgAY/OVXgwBYKSeCwFgtP4uBIDR+ngIACP1pT4VAsBIPdg3Ysbs31i9vvWt7Q0d3fKWtWM/0wOxZ7b3h03X27q/Hft6z/d8z/W3PdiXGqVJY/Sjbez0XYjfT/WXTde7+0DDcl/nN13n9LF21jd6uGt7xAUwfD/Q73dmTNdLbZjx5+CMzuivu6x/8Q1gyN7e450Z03Zrn2v2ndnjnScAw7Wxj3ZITNs/dEXz4ZA2d60ADNNvdU2TmLbnOqevNz+u7AoBGJ63dX1M31c7q/9uvlzXWQIwLCva1EJM2wut76nmzaR7WiEAQ/L+XhPT9tlO6ZPNo9d0jQAMx/d1YUzb37SmZ5tXF/RmO4CheFf7xzT9e+9rS/NsoUt7hwtgCCadHdPzxX6tVW1p3p3VfgIwBCe3Iqbhv7qz9a3stl5u/n1HP+wVYAhOb09t3weP0qPNh2/1xb7wf//9U4+1vSF5a48IwPxbMYf/y9TmNse+doxXAAFgvI4WgCFYHuyO7/QNYAgOCMb7dBgCAQIACAAgAIAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAwP4tjvd1QcybY0IA9opTAq8AgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIACAAgAAAAgAIwKt7sdHCL0cAnm608MsRgG2NFn45AvDpvtmugm/2aQEYgme6oV0FN/SMAAzD1T3droCnu7qBEICXWtdD7Sx4qHW91AhMGo9f6cpWBDv2n13XHY3EpHE5utUd/6p3D3yrZ9rW8wEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALB3/S+shWz4+SLiPAAAAABJRU5ErkJggg==");
+  }
+
+  /* Ícone novo da aba Upload */
+  .app-shell .nav[data-tela="upload"] .nav-icon,
+  .app-shell #navUpload .nav-icon{
+    width:30px!important;
+    height:30px!important;
+    display:block!important;
+    background-image:var(--img-upload-caicavv)!important;
+    background-repeat:no-repeat!important;
+    background-position:center!important;
+    background-size:contain!important;
+    font-size:0!important;
+    color:transparent!important;
+    filter:none!important;
+  }
+  body.modo-app.aparencia-noturna .app-shell .nav[data-tela="upload"] .nav-icon,
+  body.modo-app.aparencia-noturna .app-shell #navUpload .nav-icon{
+    filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.18))!important;
+  }
+  body.modo-app.aparencia-noturna.neon-ativo .app-shell .nav[data-tela="upload"] .nav-icon,
+  body.modo-app.aparencia-noturna.neon-ativo .app-shell #navUpload .nav-icon{
+    filter:brightness(0) invert(1)
+      drop-shadow(0 0 6px rgba(255,255,255,.24))
+      drop-shadow(0 0 14px color-mix(in srgb, var(--tema) 38%, transparent))!important;
+  }
+
+  /* Cabeçalho visual dentro da tela Upload */
+  .upload-hero-caicavv{
+    display:flex;align-items:center;gap:16px;
+    background:linear-gradient(135deg,#ffffff,#f3f8ff)!important;
+    border:1px solid #d8e4fa;border-radius:16px;
+    box-shadow:0 14px 32px rgba(23,70,150,.10);
+    padding:18px 20px;margin:0 0 14px;color:#071957;
+  }
+  .upload-hero-icon-caicavv{
+    width:58px;height:58px;border-radius:18px;flex:0 0 58px;
+    background:var(--tema-claro,#edf3ff);display:grid;place-items:center;
+    box-shadow:inset 0 0 0 1px rgba(0,91,255,.12);
+  }
+  .upload-hero-icon-caicavv::before{
+    content:"";width:32px;height:32px;display:block;
+    background-image:var(--img-upload-caicavv);
+    background-repeat:no-repeat;background-position:center;background-size:contain;
+  }
+  .upload-hero-caicavv h2{margin:0;color:#061852;font-size:22px;line-height:1.15;font-weight:900;}
+  .upload-hero-caicavv p{margin:6px 0 0;color:#52699d;font-size:14px;line-height:1.4;}
+  body.modo-app.aparencia-noturna .upload-hero-caicavv{
+    background:linear-gradient(135deg,rgba(9,20,54,.96),rgba(11,31,78,.94))!important;
+    border-color:rgba(148,163,184,.28)!important;color:#e5eefc!important;
+  }
+  body.modo-app.aparencia-noturna .upload-hero-caicavv h2{color:#f8fbff!important;}
+  body.modo-app.aparencia-noturna .upload-hero-caicavv p{color:#b9c7e6!important;}
+  body.modo-app.aparencia-noturna .upload-hero-icon-caicavv{background:rgba(255,255,255,.08)!important;}
+  body.modo-app.aparencia-noturna .upload-hero-icon-caicavv::before{
+    filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.18))!important;
+  }
+  body.modo-app.aparencia-noturna.neon-ativo .upload-hero-icon-caicavv::before{
+    filter:brightness(0) invert(1)
+      drop-shadow(0 0 6px rgba(255,255,255,.24))
+      drop-shadow(0 0 14px color-mix(in srgb, var(--tema) 38%, transparent))!important;
+  }
+
+  /* Mensagens comuns viram aviso discreto. Confirmação fica só para ações críticas, tipo excluir. */
+  .caicavv-toast-bonito{
+    position:fixed;right:18px;top:18px;z-index:1000000;
+    width:min(380px,calc(100vw - 36px));
+    border-radius:18px;background:linear-gradient(180deg,#fff,#f8fbff);
+    border:1px solid #d8e4fa;box-shadow:0 20px 60px rgba(0,23,76,.28);
+    padding:14px 16px 14px 54px;color:#071957;
+    opacity:0;transform:translateY(-10px);pointer-events:none;
+    transition:.2s ease;
+  }
+  .caicavv-toast-bonito.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .caicavv-toast-bonito::before{
+    content:"i";position:absolute;left:14px;top:14px;width:28px;height:28px;border-radius:10px;
+    display:grid;place-items:center;background:#edf3ff;color:var(--tema,#005bff);font-weight:900;
+  }
+  .caicavv-toast-bonito.sucesso::before{content:"✓";background:#ecfdf5;color:#15803d;}
+  .caicavv-toast-bonito.erro::before{content:"!";background:#fef2f2;color:#b91c1c;}
+  .caicavv-toast-bonito.aviso::before{content:"!";background:#fff7ed;color:#c2410c;}
+  .caicavv-toast-bonito b{display:block;color:#061852;font-size:14px;margin-bottom:3px;}
+  .caicavv-toast-bonito span{display:block;color:#405783;font-size:13px;line-height:1.35;}
+
+  .caicavv-msg-card.confirmacao-critica{border-color:#fecaca!important;}
+  .caicavv-msg-detalhes{
+    margin-top:12px;padding:11px 12px;border-radius:13px;
+    background:#f8fafc;border:1px solid #e2e8f0;color:#334155!important;
+    font-size:13px!important;line-height:1.45!important;
+  }
+</style>
+
+<script id="caicavv-upload-icone-mensagens-essenciais-script">
+(function(){
+  function escMsgCAICAVV(v){
+    return String(v == null ? "" : v).replace(/[&<>'"]/g, function(c){return ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c];});
+  }
+
+  function garantirToastCAICAVV(){
+    var toast = document.getElementById("caicavvToastBonito");
+    if(toast) return toast;
+    toast = document.createElement("div");
+    toast.id = "caicavvToastBonito";
+    toast.className = "caicavv-toast-bonito";
+    toast.innerHTML = '<b id="caicavvToastTitulo">Mensagem</b><span id="caicavvToastTexto"></span>';
+    document.body.appendChild(toast);
+    return toast;
+  }
+
+  window.mostrarToastBonitoCAICAVV = function(msg, tipo, titulo){
+    tipo = tipo || "info";
+    var toast = garantirToastCAICAVV();
+    var tituloEl = document.getElementById("caicavvToastTitulo");
+    var textoEl = document.getElementById("caicavvToastTexto");
+    toast.className = "caicavv-toast-bonito " + tipo;
+    tituloEl.textContent = titulo || (tipo === "sucesso" ? "Tudo certo" : tipo === "erro" ? "Atenção" : "Aviso");
+    textoEl.textContent = String(msg || "");
+    toast.classList.add("show");
+    clearTimeout(window.__caicavvToastTimer);
+    window.__caicavvToastTimer = setTimeout(function(){ toast.classList.remove("show"); }, tipo === "erro" ? 4600 : 3200);
+  };
+
+  window.alert = function(msg){
+    window.mostrarToastBonitoCAICAVV(String(msg || ""), "info", "Mensagem do sistema");
+  };
+  window.mostrarErro = function(msg){
+    window.mostrarToastBonitoCAICAVV(String(msg || ""), "erro", "Atenção");
+  };
+  window.mostrarSucesso = function(msg){
+    window.mostrarToastBonitoCAICAVV(String(msg || ""), "sucesso", "Tudo certo");
+  };
+
+  function garantirModalConfirmacaoCAICAVV(){
+    var modal = document.getElementById("caicavvMsgFundo");
+    if(modal) return modal;
+    modal = document.createElement("div");
+    modal.id = "caicavvMsgFundo";
+    modal.className = "caicavv-msg-fundo";
+    modal.innerHTML = '<div id="caicavvMsgCard" class="caicavv-msg-card" onclick="event.stopPropagation()"><div id="caicavvMsgIcone" class="caicavv-msg-icone">?</div><h3 id="caicavvMsgTitulo">Confirmar ação</h3><p id="caicavvMsgTexto"></p><div id="caicavvMsgAcoes" class="caicavv-msg-acoes"></div></div>';
+    modal.addEventListener("click", function(){ if(typeof fecharMensagemBonitaCAICAVV === "function") fecharMensagemBonitaCAICAVV(false); });
+    document.body.appendChild(modal);
+    return modal;
+  }
+
+  window.fecharMensagemBonitaCAICAVV = function(valor){
+    var modal = document.getElementById("caicavvMsgFundo");
+    if(modal) modal.classList.remove("show");
+    if(window.__caicavvMsgResolver){
+      var resolver = window.__caicavvMsgResolver;
+      window.__caicavvMsgResolver = null;
+      resolver(!!valor);
+    }
+  };
+
+  window.caicavvConfirmarBonito = function(msg, titulo, detalhes){
+    return new Promise(function(resolve){
+      var modal = garantirModalConfirmacaoCAICAVV();
+      var card = document.getElementById("caicavvMsgCard");
+      var icone = document.getElementById("caicavvMsgIcone");
+      var tituloEl = document.getElementById("caicavvMsgTitulo");
+      var textoEl = document.getElementById("caicavvMsgTexto");
+      var acoes = document.getElementById("caicavvMsgAcoes");
+      if(!modal || !card || !icone || !tituloEl || !textoEl || !acoes){ resolve(false); return; }
+      card.className = "caicavv-msg-card aviso confirmacao-critica";
+      icone.textContent = "?";
+      tituloEl.textContent = titulo || "Deseja excluir?";
+      textoEl.innerHTML = escMsgCAICAVV(msg || "Confirme se deseja continuar.") + (detalhes ? '<div class="caicavv-msg-detalhes">'+escMsgCAICAVV(detalhes)+'</div>' : "");
+      acoes.innerHTML = '<button type="button" class="caicavv-msg-cancelar" onclick="fecharMensagemBonitaCAICAVV(false)">Cancelar</button><button type="button" class="caicavv-msg-confirmar" onclick="fecharMensagemBonitaCAICAVV(true)">Excluir</button>';
+      window.__caicavvMsgResolver = resolve;
+      modal.classList.add("show");
+    });
+  };
+
+  function aplicarIconeUploadCAICAVV(){
+    var nav = document.getElementById("navUpload") || document.querySelector('.app-shell .nav[data-tela="upload"]');
+    if(nav){
+      var icon = nav.querySelector(".nav-icon");
+      if(icon){ icon.textContent = ""; icon.classList.add("caicavv-nav-img"); }
+    }
+  }
+
+  function inserirHeroUploadCAICAVV(){
+    if(!document.body.classList.contains("tela-upload")) return;
+    var destino = document.getElementById("lista") || document.querySelector(".content");
+    if(!destino || destino.querySelector(".upload-hero-caicavv")) return;
+    var titulo = destino.querySelector(".pagina-titulo");
+    var sub = destino.querySelector(".pagina-sub");
+    if(titulo) titulo.style.display = "none";
+    if(sub) sub.style.display = "none";
+    var hero = document.createElement("div");
+    hero.className = "upload-hero-caicavv";
+    hero.innerHTML = '<div class="upload-hero-icon-caicavv" aria-hidden="true"></div><div><h2>Upload</h2><p>Importe planilhas antigas de agendamentos e arquivos de entradas em formato .ods, .xlsx ou .xls.</p></div>';
+    destino.insertBefore(hero, destino.firstChild);
+  }
+
+  var abrirOriginal = window.abrirTelaUpload;
+  if(typeof abrirOriginal === "function" && !window.__caicavvUploadHeroWrapped){
+    window.__caicavvUploadHeroWrapped = true;
+    window.abrirTelaUpload = function(){
+      var r = abrirOriginal.apply(this, arguments);
+      setTimeout(function(){ aplicarIconeUploadCAICAVV(); inserirHeroUploadCAICAVV(); }, 0);
+      return r;
+    };
+  }
+
+  var excluirEntradaOriginal = window.excluirEntradaCAICAVV;
+  if(typeof excluirEntradaOriginal === "function" && !window.__caicavvExcluirEntradaDetalhada){
+    window.__caicavvExcluirEntradaDetalhada = true;
+    window.excluirEntradaCAICAVV = async function(id){
+      if(typeof podeAlterarEntradasCAICAVV === "function" && !podeAlterarEntradasCAICAVV()){
+        if(typeof mostrarErro === "function") mostrarErro("Somente Maiyara/coordenação pode excluir entradas.");
+        return;
+      }
+      var ok = await window.caicavvConfirmarBonito(
+        "Deseja excluir esta entrada?",
+        "Deseja excluir?",
+        "Essa ação remove o registro do relatório de entradas. Os arquivos importados e os agendamentos não serão alterados."
+      );
+      if(!ok) return;
+      entradasManuaisCAICAVV = entradasManuaisCAICAVV.filter(function(e){ return String(e.id) !== String(id); });
+      if(typeof salvarEntradasManuaisCAICAVV === "function") salvarEntradasManuaisCAICAVV();
+      if(typeof renderizarEntradasCAICAVV === "function") renderizarEntradasCAICAVV();
+      if(typeof mostrarSucesso === "function") mostrarSucesso("Entrada excluída.");
+    };
+  }
+
+  var excluirAbaOriginal = window.excluirAbaPassada;
+  if(typeof excluirAbaOriginal === "function" && !window.__caicavvExcluirAbaDetalhada){
+    window.__caicavvExcluirAbaDetalhada = true;
+    window.excluirAbaPassada = async function(event, id){
+      if(event) event.stopPropagation();
+      var ok = await window.caicavvConfirmarBonito(
+        "Deseja excluir esta aba de agendamentos passados?",
+        "Deseja excluir?",
+        "Apenas a aba/pasta será removida. Os agendamentos originais não serão apagados."
+      );
+      if(!ok) return;
+      try{
+        if(window.__caicavvAbasPassadas && Array.isArray(window.__caicavvAbasPassadas.abas)){
+          window.__caicavvAbasPassadas.abas = window.__caicavvAbasPassadas.abas.filter(function(a){ return String(a.id) !== String(id); });
+          if(typeof DOC_ATENDIMENTOS !== "undefined") await DOC_ATENDIMENTOS.set({ abasPassadas: window.__caicavvAbasPassadas.abas, abasPassadasAtualizadasEm:new Date().toISOString() }, { merge:true });
+        }
+        if(typeof render === "function") render();
+        else if(typeof renderizarAbasPassadas === "function") renderizarAbasPassadas();
+        if(typeof mostrarSucesso === "function") mostrarSucesso("Aba excluída.");
+      }catch(e){ console.error(e); if(typeof mostrarErro === "function") mostrarErro("Não foi possível excluir a aba."); }
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    setTimeout(function(){ aplicarIconeUploadCAICAVV(); inserirHeroUploadCAICAVV(); }, 200);
+    setTimeout(aplicarIconeUploadCAICAVV, 900);
+  });
+  setInterval(aplicarIconeUploadCAICAVV, 1200);
+})();
+</script>
+<!-- ===== FIM DO AJUSTE FINAL ===== -->
