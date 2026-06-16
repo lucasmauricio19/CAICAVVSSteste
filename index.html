@@ -3512,7 +3512,6 @@ function renderizarEntradasCAICAVV(){
   const porOrigem = entradaContarPorCAICAVV(listaMes,"origem");
   const porSexo = entradaContarPorCAICAVV(listaMes,"sexo");
   const porViolencia = entradaContarPorCAICAVV(listaMes,"violencia");
-  const porVinculacao = entradaContarPorCAICAVV(listaMes,"vinculacao");
   const porFaixa = entradaContarPorCAICAVV(listaMes.map(e=>({faixa:entradaFaixaEtariaCAICAVV(e.idade)})),"faixa");
   const criancasAdolescentes = listaMes.filter(e => { const n=parseInt(e.idade,10); return !Number.isNaN(n) && n < 18; }).length;
 
@@ -3531,7 +3530,7 @@ function renderizarEntradasCAICAVV(){
 
     <div class="entrada-box">
       <h3>Relatório de entradas: ${periodoLabel}</h3>
-      <p>Foram identificadas <b>${listaMes.length}</b> entradas no período selecionado. O bairro com maior frequência foi <b>${entradaEscapeCAICAVV(entradaMaiorCAICAVV(porBairro))}</b>. A origem de caso mais recorrente foi <b>${entradaEscapeCAICAVV(entradaMaiorCAICAVV(porOrigem))}</b>. O tipo de violência mais registrado foi <b>${entradaEscapeCAICAVV(entradaMaiorCAICAVV(porViolencia))}</b>. A vinculação/status mais frequente foi <b>${entradaEscapeCAICAVV(entradaMaiorCAICAVV(porVinculacao))}</b>.</p>
+      <p>Foram identificadas <b>${listaMes.length}</b> entradas no período selecionado. O bairro com maior frequência foi <b>${entradaEscapeCAICAVV(entradaMaiorCAICAVV(porBairro))}</b>. A origem de caso mais recorrente foi <b>${entradaEscapeCAICAVV(entradaMaiorCAICAVV(porOrigem))}</b>. O tipo de violência mais registrado foi <b>${entradaEscapeCAICAVV(entradaMaiorCAICAVV(porViolencia))}</b>.</p>
       <div class="entrada-alerta">O relatório pode ser tirado por qualquer intervalo de datas, como 1º trimestre, semestre ou ano inteiro. Os dados aparecem automaticamente conforme houver entradas importadas ou cadastradas manualmente.</div>
     </div>
 
@@ -3541,7 +3540,6 @@ function renderizarEntradasCAICAVV(){
       ${entradaListaResumoCAICAVV("Por sexo", porSexo)}
       ${entradaListaResumoCAICAVV("Por faixa etária", porFaixa)}
       ${entradaListaResumoCAICAVV("Por tipo de violência", porViolencia)}
-      ${entradaListaResumoCAICAVV("Por vinculação/status", porVinculacao)}
     </div>
 
     <div class="entrada-box">
@@ -6162,8 +6160,24 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
     return -1;
   }
   function valorMarcadoUpload(valor){
-    var t = normalizarUpload(valor);
-    return !!t && !["nao","não","n","0","false","falso","-"].includes(t);
+    if(valor === true || valor === 1) return true;
+    if(valor === false || valor === 0 || valor == null) return false;
+
+    var bruto = String(valor).trim();
+    if(!bruto) return false;
+
+    // Checkboxes e símbolos que algumas planilhas exportam como texto.
+    if(/[✓✔☑✅☒]/.test(bruto)) return true;
+
+    var t = normalizarUpload(bruto);
+    if(["nao","n","0","false","falso","-","n/a","na"].includes(t)) return false;
+
+    // Só considera marcações conhecidas. Assim, textos soltos e fórmulas não
+    // viram presença/falta por acidente.
+    return [
+      "x","sim","s","1","true","verdadeiro","ok",
+      "presente","compareceu","faltou","ausente"
+    ].includes(t) || /^x+$/.test(t);
   }
 
   function inserirNavUploadCAICAVV(){
@@ -6263,35 +6277,107 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
     var preview = document.getElementById("uploadPreview");
     var btn = document.getElementById("btnImportarUpload");
     if(btn) btn.disabled = true;
-    if(!uploadPlanilhaWorkbookCAICAVV){ if(preview) preview.innerHTML = "Envie um arquivo primeiro."; return; }
+
+    if(!uploadPlanilhaWorkbookCAICAVV){
+      if(preview) preview.innerHTML = "Envie um arquivo primeiro.";
+      return;
+    }
+
     var nomeAba = document.getElementById("uploadNomeAba")?.value || uploadPlanilhaWorkbookCAICAVV.SheetNames[0];
     var ws = uploadPlanilhaWorkbookCAICAVV.Sheets[nomeAba];
-    if(!ws){ if(preview) preview.innerHTML = "Aba da planilha não encontrada."; return; }
+    if(!ws){
+      if(preview) preview.innerHTML = "Aba da planilha não encontrada.";
+      return;
+    }
+
     var linhas = XLSX.utils.sheet_to_json(ws, { header:1, defval:"", raw:true });
-    var idxHeader = linhas.findIndex(function(row){ var h = (row || []).map(normalizarUpload); return idxColunaUpload(h,"data") >= 0 && idxColunaUpload(h,"pasta") >= 0; });
-    if(idxHeader < 0){ if(preview) preview.innerHTML = "Não encontrei cabeçalho com DATA e PASTA nessa aba."; if(typeof mostrarErro === "function") mostrarErro("Não encontrei as colunas DATA e PASTA na planilha."); return; }
+    var idxHeader = linhas.findIndex(function(row){
+      var h = (row || []).map(normalizarUpload);
+      return idxColunaUpload(h,"data") >= 0 && idxColunaUpload(h,"pasta") >= 0;
+    });
+
+    if(idxHeader < 0){
+      if(preview) preview.innerHTML = "Não encontrei cabeçalho com DATA e PASTA nessa aba.";
+      if(typeof mostrarErro === "function") mostrarErro("Não encontrei as colunas DATA e PASTA na planilha.");
+      return;
+    }
+
     var headerNorm = (linhas[idxHeader] || []).map(normalizarUpload);
-    var idxData = idxColunaUpload(headerNorm,"data"), idxPasta = idxColunaUpload(headerNorm,"pasta"), idxCompareceu = idxColunaUpload(headerNorm,"compareceu"), idxFaltou = idxColunaUpload(headerNorm,"faltou"), idxObs = idxColunaUpload(headerNorm,"obs");
+    var idxData = idxColunaUpload(headerNorm,"data");
+    var idxPasta = idxColunaUpload(headerNorm,"pasta");
+    var idxCompareceu = idxColunaUpload(headerNorm,"compareceu");
+    var idxFaltou = idxColunaUpload(headerNorm,"faltou");
+    var idxObs = idxColunaUpload(headerNorm,"obs");
+
+    if(idxCompareceu < 0 && idxFaltou < 0){
+      if(preview) preview.innerHTML = "Não encontrei as colunas COMPARECEU ou NÃO COMPARECEU.";
+      if(typeof mostrarErro === "function") mostrarErro("A planilha precisa ter a coluna COMPARECEU e/ou NÃO COMPARECEU.");
+      return;
+    }
+
     var tecnico = document.getElementById("uploadTecnico")?.value || "";
-    if(!tecnico){ if(preview) preview.innerHTML = "Selecione o técnico antes de gerar a prévia."; if(typeof mostrarErro === "function") mostrarErro("Selecione o técnico da planilha."); return; }
-    var registros = [], erros = 0, semPasta = 0, semStatus = 0;
-    for(var i=idxHeader+1;i<linhas.length;i++){
+    if(!tecnico){
+      if(preview) preview.innerHTML = "Selecione o técnico antes de gerar a prévia.";
+      if(typeof mostrarErro === "function") mostrarErro("Selecione o técnico da planilha.");
+      return;
+    }
+
+    var registros = [];
+    var erros = 0;
+    var semPasta = 0;
+    var semStatus = 0;
+    var statusConflitante = 0;
+    var duplicadosNaPlanilha = 0;
+    var chavesDaPrevia = new Set();
+
+    function chaveRegistroUpload(r){
+      return [
+        String(r.pasta || ""),
+        String(r.data || ""),
+        String(r.tecnico || ""),
+        String(r.abaUpload || "")
+      ].join("||");
+    }
+
+    for(var i = idxHeader + 1; i < linhas.length; i++){
       var row = linhas[i] || [];
-      var temConteudo = row.some(function(c){return String(c || "").trim();});
+      var temConteudo = row.some(function(c){
+        return c !== null && c !== undefined && String(c).trim() !== "";
+      });
       if(!temConteudo) continue;
+
       var dataISO = parseDataUpload(row[idxData]);
-      var pastaValor = typeof normalizarPasta === "function" ? normalizarPasta(row[idxPasta]) : String(row[idxPasta] || "").trim();
+      var pastaValor = typeof normalizarPasta === "function"
+        ? normalizarPasta(row[idxPasta])
+        : String(row[idxPasta] || "").trim();
+
+      // Linhas de título, totais e separadores não entram na contagem.
       if(!dataISO && !pastaValor) continue;
-      if(!dataISO){ erros++; continue; }
-      if(!pastaValor) semPasta++;
+      if(!dataISO){
+        erros++;
+        continue;
+      }
+      if(!pastaValor){
+        semPasta++;
+        continue;
+      }
+
       var marcouCompareceu = idxCompareceu >= 0 && valorMarcadoUpload(row[idxCompareceu]);
       var marcouFaltou = idxFaltou >= 0 && valorMarcadoUpload(row[idxFaltou]);
-      var status = "agendado";
-      if(marcouCompareceu) status = "compareceu";
-      else if(marcouFaltou) status = "faltou";
-      else semStatus++;
+
+      // Um registro válido precisa ter exatamente uma marcação.
+      if(marcouCompareceu && marcouFaltou){
+        statusConflitante++;
+        continue;
+      }
+      if(!marcouCompareceu && !marcouFaltou){
+        semStatus++;
+        continue;
+      }
+
+      var status = marcouCompareceu ? "compareceu" : "faltou";
       var obs = idxObs >= 0 ? String(row[idxObs] || "").trim() : "";
-      registros.push({
+      var registro = {
         id:"upload_"+Date.now()+"_"+i+"_"+Math.random().toString(36).slice(2,7),
         pasta:pastaValor,
         nome:nomePacientePorPastaUpload(pastaValor),
@@ -6309,46 +6395,201 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
         criadoPor: tecnicoLogado ? tecnicoLogado.nome : "Recepção",
         roleCriador: tecnicoLogado ? tecnicoLogado.role : "recepcao",
         criadoEm:new Date().toISOString()
-      });
+      };
+
+      var chave = chaveRegistroUpload(registro);
+      if(chavesDaPrevia.has(chave)){
+        duplicadosNaPlanilha++;
+        continue;
+      }
+      chavesDaPrevia.add(chave);
+      registros.push(registro);
     }
-    var duplicados = registros.filter(function(r){ return (atendimentos || []).some(function(a){ return String(a.origem || "") === "upload" && String(a.pasta || "") === String(r.pasta || "") && String(a.data || "") === String(r.data || "") && String(a.tecnico || "") === String(r.tecnico || "") && String(a.abaUpload || "") === String(r.abaUpload || ""); }); }).length;
+
+    var duplicadosExistentes = registros.filter(function(r){
+      return (atendimentos || []).some(function(a){
+        return String(a.origem || "") === "upload" &&
+          String(a.pasta || "") === String(r.pasta || "") &&
+          String(a.data || "") === String(r.data || "") &&
+          String(a.tecnico || "") === String(r.tecnico || "") &&
+          String(a.abaUpload || "") === String(r.abaUpload || "");
+      });
+    }).length;
+
+    var ignorados = erros + semPasta + semStatus + statusConflitante + duplicadosNaPlanilha;
+
     uploadPlanilhaLinhasCAICAVV = registros;
-    uploadPlanilhaResumoCAICAVV = { total:registros.length, compareceu:registros.filter(function(r){return r.status==="compareceu";}).length, faltou:registros.filter(function(r){return r.status==="faltou";}).length, semPasta:semPasta, semStatus:semStatus, erros:erros, duplicados:duplicados, tecnico:tecnico, nomeAba:nomeAba };
+    uploadPlanilhaResumoCAICAVV = {
+      total:registros.length,
+      compareceu:registros.filter(function(r){ return r.status === "compareceu"; }).length,
+      faltou:registros.filter(function(r){ return r.status === "faltou"; }).length,
+      semPasta:semPasta,
+      semStatus:semStatus,
+      statusConflitante:statusConflitante,
+      erros:erros,
+      duplicadosNaPlanilha:duplicadosNaPlanilha,
+      duplicadosExistentes:duplicadosExistentes,
+      duplicados:duplicadosNaPlanilha + duplicadosExistentes,
+      ignorados:ignorados,
+      tecnico:tecnico,
+      nomeAba:nomeAba
+    };
+
     renderizarResumoUploadCAICAVV();
-    var linhasHtml = registros.slice(0,250).map(function(r){return '<tr><td>'+escUpload(dataBRUpload(r.data))+'</td><td>'+escUpload(r.pasta || "—")+'</td><td>'+escUpload(r.nome || "Não encontrado")+'</td><td>'+escUpload(r.tecnico)+'</td><td class="'+classeStatusUpload(r.status)+'">'+escUpload(statusTextoUpload(r.status))+'</td><td>'+escUpload(r.observacaoRealizacao || "")+'</td></tr>';}).join("");
-    if(preview){ preview.className = "upload-tabela-wrap"; preview.innerHTML = '<table class="upload-tabela-caicavv"><thead><tr><th>Data</th><th>Pasta</th><th>Nome encontrado</th><th>Técnico</th><th>Veio?</th><th>Observação</th></tr></thead><tbody>'+(linhasHtml || '<tr><td colspan="6">Nenhum registro encontrado.</td></tr>')+'</tbody></table>'+(registros.length > 250 ? '<div class="upload-aviso-caicavv">Mostrando apenas os primeiros 250 registros na prévia.</div>' : ''); }
-    if(btn) btn.disabled = registros.length === 0;
+
+    var linhasHtml = registros.slice(0,250).map(function(r){
+      return '<tr><td>'+escUpload(dataBRUpload(r.data))+'</td><td>'+escUpload(r.pasta || "—")+'</td><td>'+escUpload(r.nome || "Não encontrado")+'</td><td>'+escUpload(r.tecnico)+'</td><td class="'+classeStatusUpload(r.status)+'">'+escUpload(statusTextoUpload(r.status))+'</td><td>'+escUpload(r.observacaoRealizacao || "")+'</td></tr>';
+    }).join("");
+
+    var avisos = [];
+    if(semStatus) avisos.push(semStatus + " sem marcação de presença/falta");
+    if(statusConflitante) avisos.push(statusConflitante + " com as duas opções marcadas");
+    if(semPasta) avisos.push(semPasta + " sem pasta");
+    if(erros) avisos.push(erros + " com data inválida");
+    if(duplicadosNaPlanilha) avisos.push(duplicadosNaPlanilha + " duplicado(s) dentro da própria planilha");
+
+    var avisoHtml = avisos.length
+      ? '<div class="upload-aviso-caicavv"><b>Linhas ignoradas:</b> '+escUpload(avisos.join("; "))+'. Apenas registros válidos entram no total e serão importados.</div>'
+      : '';
+
+    if(preview){
+      preview.className = "upload-tabela-wrap";
+      preview.innerHTML = '<table class="upload-tabela-caicavv"><thead><tr><th>Data</th><th>Pasta</th><th>Nome encontrado</th><th>Técnico</th><th>Veio?</th><th>Observação</th></tr></thead><tbody>'+
+        (linhasHtml || '<tr><td colspan="6">Nenhum registro válido encontrado.</td></tr>')+
+        '</tbody></table>'+
+        (registros.length > 250 ? '<div class="upload-aviso-caicavv">Mostrando apenas os primeiros 250 registros na prévia.</div>' : '')+
+        avisoHtml;
+    }
+
+    // Se todos os registros válidos já existem, não há nada para importar.
+    if(btn) btn.disabled = registros.length === 0 || duplicadosExistentes >= registros.length;
   };
 
   function renderizarResumoUploadCAICAVV(){
     var texto = document.getElementById("uploadResumoTexto");
     var cards = document.getElementById("uploadResumoCards");
     var r = uploadPlanilhaResumoCAICAVV;
-    if(!r){ if(texto) texto.textContent = "Nenhuma planilha lida ainda."; if(cards) cards.innerHTML = ""; return; }
-    if(texto) texto.textContent = r.total + " registro(s) encontrados na aba " + r.nomeAba + ".";
-    if(cards) cards.innerHTML = '<div class="upload-kpi-caicavv"><span>Total</span><b>'+r.total+'</b></div><div class="upload-kpi-caicavv"><span>Compareceu</span><b>'+r.compareceu+'</b></div><div class="upload-kpi-caicavv"><span>Faltou</span><b>'+r.faltou+'</b></div><div class="upload-kpi-caicavv"><span>Duplicados</span><b>'+r.duplicados+'</b></div>';
+
+    if(!r){
+      if(texto) texto.textContent = "Nenhuma planilha lida ainda.";
+      if(cards) cards.innerHTML = "";
+      return;
+    }
+
+    if(texto){
+      texto.textContent = r.total + " registro(s) válido(s) encontrados na aba " + r.nomeAba +
+        (r.ignorados ? " " + r.ignorados + " linha(s) inválida(s) ou incompleta(s) foram ignoradas." : ".");
+    }
+
+    if(cards){
+      cards.innerHTML = '<div class="upload-kpi-caicavv"><span>Total válido</span><b>'+r.total+'</b></div>'+
+        '<div class="upload-kpi-caicavv"><span>Compareceu</span><b>'+r.compareceu+'</b></div>'+
+        '<div class="upload-kpi-caicavv"><span>Faltou</span><b>'+r.faltou+'</b></div>'+
+        '<div class="upload-kpi-caicavv"><span>Duplicados</span><b>'+r.duplicados+'</b></div>';
+    }
   }
 
   window.importarUploadPlanilhaFirebaseCAICAVV = async function(){
-    if(!podeAcessarUploadCAICAVV()){ if(typeof mostrarErro === "function") mostrarErro("Sem permissão para importar planilhas."); return; }
-    if(!uploadPlanilhaLinhasCAICAVV.length){ if(typeof mostrarErro === "function") mostrarErro("Gere a prévia antes de importar."); return; }
+    if(!podeAcessarUploadCAICAVV()){
+      if(typeof mostrarErro === "function") mostrarErro("Sem permissão para importar planilhas.");
+      return;
+    }
+    if(!uploadPlanilhaLinhasCAICAVV.length){
+      if(typeof mostrarErro === "function") mostrarErro("Gere a prévia antes de importar.");
+      return;
+    }
+
     var nomeRelatorio = String(document.getElementById("uploadNomeRelatorio")?.value || uploadPlanilhaResumoCAICAVV?.nomeAba || "Importação").trim();
     var importacaoId = "imp_upload_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
-    var btn = document.getElementById("btnImportarUpload"); if(btn) btn.disabled = true;
-    var novos = uploadPlanilhaLinhasCAICAVV.filter(function(r){ return !(atendimentos || []).some(function(a){ return String(a.origem || "") === "upload" && String(a.pasta || "") === String(r.pasta || "") && String(a.data || "") === String(r.data || "") && String(a.tecnico || "") === String(r.tecnico || "") && String(a.abaUpload || "") === String(r.abaUpload || ""); }); }).map(function(r){ return Object.assign({}, r, { importacaoUploadId:importacaoId, nomeRelatorioUpload:nomeRelatorio, importadoEm:new Date().toISOString() }); });
-    if(!novos.length){ if(typeof mostrarErro === "function") mostrarErro("Todos os registros dessa prévia já foram importados."); if(btn) btn.disabled = false; return; }
+    var btn = document.getElementById("btnImportarUpload");
+    if(btn) btn.disabled = true;
+
+    function chaveRegistroUpload(r){
+      return [
+        String(r.pasta || ""),
+        String(r.data || ""),
+        String(r.tecnico || ""),
+        String(r.abaUpload || "")
+      ].join("||");
+    }
+
+    var chavesExistentes = new Set((atendimentos || []).filter(function(a){
+      return String(a.origem || "") === "upload" || String(a.tipo || "") === "importado";
+    }).map(chaveRegistroUpload));
+    var chavesNovas = new Set();
+
+    var novos = uploadPlanilhaLinhasCAICAVV.filter(function(r){
+      var chave = chaveRegistroUpload(r);
+      if(chavesExistentes.has(chave) || chavesNovas.has(chave)) return false;
+      chavesNovas.add(chave);
+      return true;
+    }).map(function(r){
+      return Object.assign({}, r, {
+        importacaoUploadId:importacaoId,
+        nomeRelatorioUpload:nomeRelatorio,
+        importadoEm:new Date().toISOString()
+      });
+    });
+
+    if(!novos.length){
+      if(typeof mostrarErro === "function") mostrarErro("Todos os registros válidos dessa prévia já foram importados.");
+      if(btn) btn.disabled = false;
+      return;
+    }
+
+    // Guarda o estado anterior. Antes, quando o Firebase falhava, os itens
+    // continuavam no navegador e a próxima tentativa era tratada como duplicada.
+    var atendimentosAntes = Array.isArray(atendimentos) ? atendimentos.slice() : [];
+    var logsAntes = (typeof logsAlteracoes !== "undefined" && Array.isArray(logsAlteracoes))
+      ? logsAlteracoes.slice()
+      : null;
+
     try{
       atendimentos.unshift.apply(atendimentos, novos);
-      if(typeof registrarLog === "function") registrarLog("Upload de planilha", { id:"", pasta:"", nome:nomeRelatorio, tecnico:uploadPlanilhaResumoCAICAVV?.tecnico || "" }, novos.length + " registro(s) importado(s) de " + uploadPlanilhaArquivoNomeCAICAVV + " / " + (uploadPlanilhaResumoCAICAVV?.nomeAba || "aba") + ".");
-      if(typeof salvarAtendimentosFirebase === "function") await salvarAtendimentosFirebase();
+
+      if(typeof registrarLog === "function"){
+        registrarLog(
+          "Upload de planilha",
+          { id:"", pasta:"", nome:nomeRelatorio, tecnico:uploadPlanilhaResumoCAICAVV?.tecnico || "" },
+          novos.length + " registro(s) importado(s) de " + uploadPlanilhaArquivoNomeCAICAVV + " / " + (uploadPlanilhaResumoCAICAVV?.nomeAba || "aba") + "."
+        );
+      }
+
+      if(typeof salvarAtendimentosFirebase !== "function"){
+        throw new Error("Função de salvamento do Firebase não encontrada.");
+      }
+      await salvarAtendimentosFirebase();
+
       if(typeof mostrarSucesso === "function") mostrarSucesso(novos.length + " registro(s) importado(s) com sucesso.");
+
       var preview = document.getElementById("uploadPreview");
-      if(preview){ preview.className = "upload-sucesso-caicavv"; preview.innerHTML = "<b>Importação concluída.</b><br>"+novos.length+" registro(s) foram salvos para relatório. Duplicados foram ignorados."; }
+      if(preview){
+        preview.className = "upload-sucesso-caicavv";
+        preview.innerHTML = "<b>Importação concluída.</b><br>"+novos.length+" registro(s) válidos foram salvos para relatório. Linhas sem presença/falta e duplicados foram ignorados.";
+      }
+
       uploadPlanilhaLinhasCAICAVV = [];
       uploadPlanilhaResumoCAICAVV = null;
       renderizarResumoUploadCAICAVV();
       renderizarPastasUploadImportadasCAICAVV();
-    }catch(e){ console.error(e); if(typeof mostrarErro === "function") mostrarErro("Erro ao salvar os registros importados no Firebase."); if(btn) btn.disabled = false; }
+    }catch(e){
+      console.error(e);
+
+      // Desfaz a alteração local para a tela não fingir que salvou algo que o
+      // Firebase recusou. Humanos já têm problemas suficientes com dados-fantasma.
+      atendimentos = atendimentosAntes;
+      if(logsAntes !== null) logsAlteracoes = logsAntes;
+
+      var detalhe = String((e && (e.message || e.code)) || "");
+      var mensagem = "Erro ao salvar os registros importados no Firebase.";
+      if(/permission-denied|permiss/i.test(detalhe)){
+        mensagem = "O Firebase recusou a gravação por falta de permissão.";
+      }else if(/maximum size|too large|resource-exhausted|exceeds.*size|maior.*tamanho/i.test(detalhe)){
+        mensagem = "O documento do Firebase atingiu o limite de tamanho. Nenhum registro foi importado.";
+      }
+      if(typeof mostrarErro === "function") mostrarErro(mensagem);
+      if(btn) btn.disabled = false;
+    }
   };
 
   function atendimentosUploadImportados(){
