@@ -6119,9 +6119,38 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
     return DOC_ATENDIMENTOS.collection("relatoriosImportados");
   }
 
+  function anoUploadValidoCAICAVV(ano){
+    ano = Number(ano);
+    return Number.isInteger(ano) && ano >= 2000 && ano <= 2100;
+  }
+
+  function dataUploadValidaCAICAVV(valor){
+    var iso = parseDataUpload(valor);
+    if(!iso) return "";
+    var partes = iso.split("-").map(Number);
+    if(partes.length !== 3 || !anoUploadValidoCAICAVV(partes[0])) return "";
+    var teste = new Date(partes[0], partes[1] - 1, partes[2]);
+    if(
+      teste.getFullYear() !== partes[0] ||
+      teste.getMonth() !== partes[1] - 1 ||
+      teste.getDate() !== partes[2]
+    ) return "";
+    return iso;
+  }
+
   function anoRegistroUploadCAICAVV(registro){
-    var m = String(registro && registro.data || "").match(/^(\d{4})-/);
-    return m ? m[1] : "Sem ano";
+    var iso = dataUploadValidaCAICAVV(registro && registro.data);
+    return iso ? iso.slice(0,4) : "Sem ano";
+  }
+
+  function normalizarRegistroUploadPersistidoCAICAVV(registro){
+    if(!registro || typeof registro !== "object") return null;
+    var dataISO = dataUploadValidaCAICAVV(registro.data);
+    if(!dataISO) return null;
+    return Object.assign({}, registro, {
+      data:dataISO,
+      anoUpload:dataISO.slice(0,4)
+    });
   }
 
   function chaveRegistroUploadPersistenteCAICAVV(r){
@@ -6144,8 +6173,11 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
 
   function normalizarDocumentoRelatorioUploadCAICAVV(id, dados){
     dados = dados || {};
-    var itens = Array.isArray(dados.itens) ? dados.itens.filter(Boolean) : [];
-    var anos = Array.from(new Set(itens.map(anoRegistroUploadCAICAVV)));
+    var itensOriginais = Array.isArray(dados.itens) ? dados.itens.filter(Boolean) : [];
+    var itens = itensOriginais.map(normalizarRegistroUploadPersistidoCAICAVV).filter(Boolean);
+    var anos = Array.from(new Set(itens.map(anoRegistroUploadCAICAVV))).filter(function(ano){
+      return ano !== "Sem ano";
+    });
     return {
       id:String(id || dados.id || ""),
       importacaoBaseId:String(dados.importacaoBaseId || id || dados.id || ""),
@@ -6153,12 +6185,14 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
       arquivo:String(dados.arquivo || dados.arquivoUpload || "Arquivo não informado"),
       aba:String(dados.aba || dados.abaUpload || "Aba não informada"),
       tecnico:String(dados.tecnico || "Técnico não informado"),
-      ano:String(dados.ano || (anos.length === 1 ? anos[0] : "")),
+      ano:String(anos.length === 1 ? anos[0] : ""),
       criadoEm:String(dados.criadoEm || dados.importadoEm || ""),
       criadoPor:String(dados.criadoPor || ""),
       roleCriador:String(dados.roleCriador || ""),
       legadoChave:String(dados.legadoChave || ""),
-      itens:itens
+      itens:itens,
+      _itensOriginaisQuantidade:itensOriginais.length,
+      _teveItensInvalidos:itens.length !== itensOriginais.length
     };
   }
 
@@ -6299,8 +6333,86 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
     }
   }
 
+  async function limparUploadsInvalidosCAICAVV(){
+    var col = colecaoRelatoriosUploadCAICAVV();
+    var corrigidos = [];
+    var removidos = [];
+
+    // Remove dos relatórios separados as linhas de total/resumo que foram
+    // interpretadas como datas de 1900 ou ficaram sem uma data válida.
+    for(const relatorio of uploadRelatoriosFirebaseCAICAVV.slice()){
+      if(!relatorio._teveItensInvalidos) continue;
+      var ref = col.doc(relatorio.id);
+
+      if(!relatorio.itens.length){
+        await ref.delete();
+        removidos.push(relatorio.id);
+        continue;
+      }
+
+      var anos = Array.from(new Set(relatorio.itens.map(anoRegistroUploadCAICAVV))).filter(function(ano){
+        return ano !== "Sem ano";
+      });
+      var anoDocumento = anos.length === 1 ? anos[0] : "";
+
+      await ref.set({
+        itens:relatorio.itens,
+        ano:anoDocumento,
+        corrigidoEm:new Date().toISOString()
+      }, { merge:true });
+
+      relatorio.ano = anoDocumento;
+      relatorio._teveItensInvalidos = false;
+      relatorio._itensOriginaisQuantidade = relatorio.itens.length;
+      corrigidos.push(relatorio.id);
+    }
+
+    if(removidos.length){
+      var idsRemovidos = new Set(removidos.map(String));
+      uploadRelatoriosFirebaseCAICAVV = uploadRelatoriosFirebaseCAICAVV.filter(function(r){
+        return !idsRemovidos.has(String(r.id));
+      });
+    }
+
+    // Faz a mesma limpeza nos uploads antigos que ainda estejam dentro do
+    // documento principal. Agendamentos normais não são tocados.
+    var listaAtual = Array.isArray(atendimentos) ? atendimentos : [];
+    var listaLimpa = [];
+    var alterouLegado = false;
+
+    listaAtual.forEach(function(item){
+      if(!item || (item.origem !== "upload" && item.tipo !== "importado")){
+        listaLimpa.push(item);
+        return;
+      }
+
+      var normalizado = normalizarRegistroUploadPersistidoCAICAVV(item);
+      if(!normalizado){
+        alterouLegado = true;
+        return;
+      }
+
+      if(normalizado.data !== item.data || normalizado.anoUpload !== item.anoUpload){
+        alterouLegado = true;
+      }
+      listaLimpa.push(normalizado);
+    });
+
+    if(alterouLegado){
+      await DOC_ATENDIMENTOS.set({
+        itens:listaLimpa,
+        uploadsInvalidosRemovidosEm:new Date().toISOString(),
+        atualizadoEm:new Date().toISOString()
+      }, { merge:true });
+      atendimentos = listaLimpa;
+    }
+
+    return { corrigidos:corrigidos.length, removidos:removidos.length };
+  }
+
   async function garantirRelatoriosUploadCAICAVV(){
     await carregarRelatoriosUploadFirebaseCAICAVV(false);
+    await limparUploadsInvalidosCAICAVV();
     await migrarUploadsLegadosCAICAVV();
     return uploadRelatoriosFirebaseCAICAVV;
   }
@@ -6328,18 +6440,52 @@ body.aparencia-noturna.neon-ativo .caicavv-agenda-decorativa{
     return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : String(data || "");
   }
   function parseDataUpload(valor){
+    function montarISO(ano, mes, dia){
+      ano = Number(ano);
+      mes = Number(mes);
+      dia = Number(dia);
+      if(!anoUploadValidoCAICAVV(ano)) return "";
+      if(mes < 1 || mes > 12 || dia < 1 || dia > 31) return "";
+      var teste = new Date(ano, mes - 1, dia);
+      if(
+        teste.getFullYear() !== ano ||
+        teste.getMonth() !== mes - 1 ||
+        teste.getDate() !== dia
+      ) return "";
+      return String(ano).padStart(4,"0") + "-" + String(mes).padStart(2,"0") + "-" + String(dia).padStart(2,"0");
+    }
+
     if(valor instanceof Date && !isNaN(valor.getTime())){
-      return valor.getFullYear() + "-" + String(valor.getMonth()+1).padStart(2,"0") + "-" + String(valor.getDate()).padStart(2,"0");
+      return montarISO(valor.getFullYear(), valor.getMonth() + 1, valor.getDate());
     }
+
+    // Datas reais do Excel/ODS costumam ter número serial alto. Valores como
+    // 12, 35 ou 64 nas linhas de TOTAL não podem virar janeiro de 1900.
     if(typeof valor === "number" && isFinite(valor) && typeof XLSX !== "undefined"){
-      try{ var obj = XLSX.SSF.parse_date_code(valor); if(obj && obj.y && obj.m && obj.d) return String(obj.y).padStart(4,"0") + "-" + String(obj.m).padStart(2,"0") + "-" + String(obj.d).padStart(2,"0"); }catch(e){}
+      if(valor < 30000 || valor > 80000) return "";
+      try{
+        var obj = XLSX.SSF.parse_date_code(valor);
+        if(obj) return montarISO(obj.y, obj.m, obj.d);
+      }catch(e){}
+      return "";
     }
-    var txt = String(valor || "").trim().replace(/\s+.*$/, "");
+
+    var txt = String(valor == null ? "" : valor).trim();
     if(!txt) return "";
+
+    // Descarta o horário, mas preserva a data.
+    txt = txt.replace(/[T\s]+\d{1,2}:\d{2}.*$/, "");
+
     var m = txt.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
-    if(m) return m[1] + "-" + m[2].padStart(2,"0") + "-" + m[3].padStart(2,"0");
+    if(m) return montarISO(m[1], m[2], m[3]);
+
     m = txt.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
-    if(m){ var ano = Number(m[3]); if(ano < 100) ano += 2000; return String(ano).padStart(4,"0") + "-" + m[2].padStart(2,"0") + "-" + m[1].padStart(2,"0"); }
+    if(m){
+      var ano = Number(m[3]);
+      if(ano < 100) ano += 2000;
+      return montarISO(ano, m[2], m[1]);
+    }
+
     return "";
   }
   function nomePacientePorPastaUpload(pasta){
