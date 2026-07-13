@@ -10,59 +10,96 @@
     <link rel="icon" type="image/png" href="./favicon.png">
     
 </head>
+<body>
 
 <div id="toast" class="toast"></div>
 
 <div id="menuLateralFundo" class="menu-lateral-fundo" onclick="fecharMenuLateral()"></div>
+
+
+
 <aside id="menuLateral" class="menu-lateral" aria-label="Menu lateral">
+  
   <div class="menu-lateral-topo">
+
     <h3>Menu CAICAVV</h3>
+
     <button type="button" class="menu-lateral-fechar" onclick="fecharMenuLateral()">×</button>
+
   </div>
 
   <div class="menu-bloco">
     <h4>Relatório mensal</h4>
+
     <p>Gera relatório de todos os técnicos com pasta, dia e status. Sem nome e sem horário.</p>
+
     <input id="mesRelatorio" type="month">
+
     <button type="button" class="btn-relatorio" onclick="abrirRelatorioMensal()">Abrir relatório mensal</button>
+
     <div class="relatorio-permissao">Responsável pelo relatório: Recepção.</div>
+
   </div>
 
   <div class="menu-bloco">
+    
     <h4>Relatório por dia</h4>
+    
     <p>Escolha uma data para ver os atendimentos do dia, com totais de presença, falta e pendência.</p>
+    
     <input id="dataRelatorioDia" type="date">
+    
     <button type="button" class="btn-relatorio" onclick="abrirRelatorioDia()">Abrir relatório por dia</button>
+
   </div>
 
   <div class="menu-bloco">
+    
     <h4>Relatório por técnico</h4>
+    
     <p>Escolha um técnico para gerar o resumo dele em um mês específico.</p>
+    
     <select id="tecnicoRelatorio"></select>
+    
     <input id="mesRelatorioTecnico" type="month">
+    
     <button type="button" class="btn-relatorio" onclick="abrirRelatorioTecnico()">Abrir relatório por técnico</button>
+  
   </div>
 
   <div class="menu-bloco">
+    
     <h4>Lista de faltas</h4>
+    
     <p>Mostra as pastas com mais faltas no mês selecionado, em ordem do maior para o menor.</p>
+    
     <input id="mesListaFaltas" type="month">
+    
     <button type="button" class="btn-relatorio" onclick="abrirListaFaltas()">Abrir lista de faltas</button>
+  
   </div>
 
   <div id="avisoDia30" class="alerta-relatorio hidden"></div>
+
 </aside>
 
 
 
 <div id="modalExcluir" class="modal-fundo">
   <div class="modal-box">
+    
     <h3>Excluir agendamento</h3>
+    
     <p>Deseja realmente excluir esse agendamento?</p>
+    
     <div class="modal-acoes">
+      
       <button type="button" class="modal-cancelar" onclick="fecharModalExcluir()">Cancelar</button>
+      
       <button type="button" class="modal-confirmar" onclick="confirmarExclusao()">Excluir</button>
+    
     </div>
+  
   </div>
 </div>
 
@@ -95,6 +132,7 @@
 </div>
 
 
+
 <div id="modalObservacaoRealizado" class="modal-fundo">
   <div class="modal-box modal-observacao">
     <h3>Deseja adicionar alguma observação?</h3>
@@ -107,12 +145,16 @@
   </div>
 </div>
 
+
+
 <div id="animacaoAtendimentoRealizado" class="animacao-realizado">
   <div class="animacao-realizado-card">
     <div class="animacao-check">✓</div>
     <h2>Atendimento realizado</h2>
   </div>
 </div>
+
+
 
 <div id="modalHistorico" class="modal-fundo">
   <div class="modal-box">
@@ -124,6 +166,8 @@
     </div>
   </div>
 </div>
+
+
 
 <div id="modalLog" class="modal-fundo">
   <div class="modal-box">
@@ -139,17 +183,19 @@
 
 
 <div id="loginDiv" class="login-screen">
-  <div class="background">
-    <div class="big-flower-bg"></div>
-    <div class="wave wave1"></div>
-    <div class="wave wave2"></div>
-    <div class="dots dots1"></div>
-    <div class="dots dots2"></div>
-    <div class="orb orb1"></div>
-    <div class="orb orb2"></div>
-  </div>
+    <div class="background">
+      <div class="big-flower-bg"></div>
+      <div class="wave wave1"></div>
+      <div class="wave wave2"></div>
+      <div class="dots dots1"></div>
+      <div class="dots dots2"></div>
+      <div class="orb orb1"></div>
+      <div class="orb orb2"></div>
+    </div>
 
-  <main class="login-area">
+
+
+ <main class="login-area">
     <section class="login-card">
       <div class="flower-logo">
         <span class="petal p1"></span>
@@ -293,5 +339,6 @@
     </section>
   </main>
 </div>
+</body>
 
 </html>
